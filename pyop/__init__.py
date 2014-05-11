@@ -1,0 +1,3 @@
+from .linop import (
+      LinearOperator
+    )
