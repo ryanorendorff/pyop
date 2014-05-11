@@ -7,3 +7,5 @@ from .convert import(
     , toLinearOperator
     , toMatrix
     )
+
+from .tests import adjointTest
