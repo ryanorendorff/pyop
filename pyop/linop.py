@@ -186,26 +186,6 @@ class LinearOperator(object):
         return self.__copy__()
 
 
-    ####################
-    #  Block Creation  #
-    ####################
-
-    @staticmethod
-    def fromBlocks(blocks):
-        ## See hmatrix fromBlocks, in lib/Data/Packed/Matrix.hs. Allows for
-        ## constant values to be automagically be expanded to blocks of the
-        ## correct size.
-        pass
-
-
-    @staticmethod
-    def diagBlocks(blocks):
-        ## Use fromBlocks and the fact that it can take constant values and
-        ## turn them into blocks.
-        pass
-
-
-
     ##################
     #  OO functions  #
     ##################
