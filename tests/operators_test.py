@@ -96,3 +96,18 @@ def testEyeAdjoint():
         I_op = operators.ones(shape)
 
         pyop.adjointTest(I_op)
+
+
+############
+#  Select  #
+############
+
+def testSelectAdjoint():
+    for _ in range(num_tests):
+        rows = random.randint(1, 100)
+        perm = [random.randint(0, rows - 1)
+                for _ in range(random.randint(1, rows))]
+
+        S_op = operators.select(rows, perm)
+
+        pyop.adjointTest(S_op)
