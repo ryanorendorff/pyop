@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse
 
 from functools import wraps
 
@@ -11,6 +12,10 @@ def ensure2dColumn(f):
     operator's size (commonly op_shape) and the second is the piece of data
     to work on (commonly x).
 
+    If the function receives a sparse input, then this wrapper does nothing
+    since a sparse matrix cannot be squeeze or reshaped without significant
+    alterations in its structure.
+
     Parameters
     ----------
     f : function with arguments (op_shape, x)
@@ -21,7 +26,7 @@ def ensure2dColumn(f):
     -------
     function
         A function that ensures the input data is at least 2 dimensional and
-        that the result is a 1D array, when possible.
+        that the result is a 1D array, in the case of a dense input.
 
     Examples
     --------
@@ -43,6 +48,10 @@ def ensure2dColumn(f):
 
     @wraps(f)
     def wrapper(op_shape, x):
+        ## If the input is sparse, then pass through without alteration.
+        if scipy.sparse.issparse(x):
+            return f(op_shape, x)
+
         ## Convert a 1D x into a column 2D array.
         if x.ndim == 1:
             x = x.reshape(-1, 1)
@@ -50,6 +59,6 @@ def ensure2dColumn(f):
         res = f(op_shape, x)
 
         ## Return 2D array to 1D if applicable.
-        return np.squeeze(res)
+        return  np.squeeze(res)
 
     return wrapper
