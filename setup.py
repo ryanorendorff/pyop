@@ -42,7 +42,7 @@ setup( name             = 'pyop'
         , 'Topic :: Scientific/Engineering :: Mathematics'
         , 'Topic :: Software Development :: Libraries :: Python Modules'
         ]
-     , packages         = ['pyop']
+     , packages         = ['pyop', 'pyop.operators']
      , install_requires =
         [ 'six >= 1.6'
         , 'numpy >= 1.8'

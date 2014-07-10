@@ -11,3 +11,5 @@ from .convert import(
 from .tests import adjointTest
 
 from .utilities import ensure2dColumn
+
+from . import operators
