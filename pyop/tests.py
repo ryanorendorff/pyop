@@ -1,6 +1,5 @@
 from numpy.random import rand
-from numpy.testing import assert_approx_equal
-
+from numpy.testing import assert_allclose
 
 def adjointTest(O, significant = 7):
     ''' Test for verifying forward and adjoint functions in LinearOperator.
@@ -32,4 +31,4 @@ def adjointTest(O, significant = 7):
     x = rand(O.shape[1])
     y = rand(O.shape[0])
 
-    assert_approx_equal(O.T(y).dot(x), y.dot(O(x)), significant)
+    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = 10**significant)
