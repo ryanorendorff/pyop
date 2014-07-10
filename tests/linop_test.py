@@ -2,8 +2,6 @@
 import pytest
 import pyop
 
-from functools import partial
-
 import numpy as np
 
 
@@ -34,17 +32,6 @@ cop_45 = pyop.toLinearOperator(c_45)
 dop_54 = pyop.toLinearOperator(d_54)
 iop_44 = pyop.toLinearOperator(i_44)
 iop_55 = pyop.toLinearOperator(i_55)
-
-
-#############
-#  Asserts  #
-#############
-
-def assertAlmostEqualTolerance(value, tolerance):
-    assert np.all(value < tolerance)
-
-
-assert_almost_equal = partial(assertAlmostEqualTolerance, tolerance = 1e-15)
 
 
 #######################################################################
@@ -100,7 +87,7 @@ def testMul():
     assert np.array_equal(np.dot(a_44, b_44),
             pyop.toMatrix(aop_44 * bop_44))
 
-    assert_almost_equal(np.dot(np.dot(c_45, d_54), a_44) -
+    np.testing.assert_allclose(np.dot(np.dot(c_45, d_54), a_44),
                           pyop.toMatrix(cop_45*dop_54*aop_44))
 
 def testPow():
