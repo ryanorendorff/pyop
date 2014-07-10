@@ -70,3 +70,43 @@ def eye(shape):
             return x[:m]
 
     return LinearOperator(shape, identity, identity)
+
+
+def select(rows, perm):
+    ''' Select only certain rows of a matrix.
+
+    This operator selects only certain rows from a matrix. It can be
+    particularly useful for consesus or sharing optimization problems.
+
+    The input perm can be in any order, and duplicates can be made. In this
+    manner, it is possible to make a permutation matrix by including an
+    input that includes each row once and only once.
+
+    Parameters
+    ----------
+    rows : integer
+        The number of total rows selecting from.
+    perm : list
+        A list of the rows to take. This will define the shape of the
+        resulting LinearOperator.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator that performs the selection on np.array inputs.
+    '''
+
+    @ensure2dColumn
+    def subset(_, x):
+        return x[perm]
+
+    @ensure2dColumn
+    def expand(op_shape, x):
+        ret_shape = (op_shape[0], x.shape[1])
+
+        ret = np.zeros(ret_shape)
+        np.add.at(ret, perm, x)
+
+        return ret
+
+    return LinearOperator((len(perm), rows), subset, expand)
