@@ -36,7 +36,11 @@ setup( name             = 'pyop'
         , 'Topic :: Software Development :: Libraries :: Python Modules'
         ]
      , packages         = ['pyop']
-     , install_requires = ['six >= 1.6', 'numpy >= 1.8']
+     , install_requires =
+        [ 'six >= 1.6'
+        , 'numpy >= 1.8'
+        , 'scipy >= 0.14.0'
+        ]
      , zip_safe         = False
      , tests_require    = ['pytest']
      , cmdclass         = {'test': PyTest}
