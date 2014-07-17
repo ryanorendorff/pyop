@@ -1,6 +1,6 @@
 import numpy as np
 
-def testOperatorVersusMatrix(mat, op):
+def operatorVersusMatrix(mat, op):
 
     assert mat.shape == op.shape
 

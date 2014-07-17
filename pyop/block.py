@@ -1,9 +1,7 @@
-from numpy import vsplit, vstack, sum, tile, concatenate, cumsum, add
+from numpy import vsplit, vstack, tile, concatenate, cumsum, add
 from pyop import LinearOperator, ensure2dColumn
 
 import six
-
-##TODO Add short function as dimension checker.
 
 def bmat(blocks):
     ''' Converts a list of lists into a new operator.
@@ -22,6 +20,9 @@ def bmat(blocks):
         The new block operator.
     '''
 
+    if len(blocks) == 0:
+        raise ValueError('Empty list supplied to block operator.')
+
     ## First collapse the rows using horz_cat.
     vert_block_op = [horzcat(row) for row in blocks]
     ## Next collapse the column into one block operator using vert_cat.
@@ -31,28 +32,18 @@ def bmat(blocks):
 
 
 def __hstack(horz_blocks):
-    ''' Converts list of operators into one linear operator.'''
-
-    if len(horz_blocks) == 0:
-        raise ValueError('Horizontal concatenation of empty list.')
-
-    if len(horz_blocks) == 1:
-        return horz_blocks[0]
-
-    ## Blocks must have the same number of rows to horizontally stack.
-    rows = horz_blocks[0].shape[0]
-    assert all(b.shape[0] == rows for b in horz_blocks)
+    ''' Converts list of horizontal operators into one linear operator.'''
 
     ## Generate a list containing the indices to split the vector x
     ## to be sent to each component of the block operator.
     splitting_idx = cumsum([b.shape[1] for b in horz_blocks])
 
-    ## Split vector subcomponents based on the block operator lengths.
-    vec_components = vsplit(x, splitting_idx)
-
-
     @ensure2dColumn
     def opFunction(x):
+
+        ## Split vector subcomponents based on the block operator lengths.
+        ## TODO: Rename all of these to imply matrix not vector
+        vec_components = vsplit(x, splitting_idx)
 
         ## Apply each operator to its corresponding subvector and add the
         ## results. Two cases for forward and adjoint functions.
@@ -60,25 +51,14 @@ def __hstack(horz_blocks):
             vec_components))
 
         ## Add the vectors together.
-        return reduce(add, sub_outvecs)
+        return sum(sub_outvecs)
+
 
     return opFunction
 
 
 def __vstack(vert_blocks):
-    ''' Converts list of operators into one operator.'''
-
-    ## All of the blocks must have the same number of columns to vertically
-    ## stack.
-
-    if len(vert_blocks) == 0:
-        raise ValueError('Vertical concatenation of empty list.')
-
-    if len(vert_blocks) == 1:
-        return vert_blocks[0]
-
-    cols = vert_blocks[0].shape[1]
-    assert all(b.shape[1] == cols for b in vert_blocks)
+    ''' Converts list of vertical operators into one operator.'''
 
     @ensure2dColumn
     def opFunction(x):
@@ -110,12 +90,18 @@ def horzcat(horz_blocks):
         The new horizontally stacked block operator.
     '''
 
+    if len(horz_blocks) == 0:
+        raise ValueError('Horizontal concatenation of empty list.')
+
     rows = horz_blocks[0].shape[0]
     cols = sum(h.shape[1] for h in horz_blocks)
+    if not all(b.shape[0] == rows for b in horz_blocks):
+        raise ValueError('''Block operator horizontal concatenation failed:
+                         row mismatch.''')
 
     return LinearOperator((rows, cols),
             __hstack(horz_blocks),
-            __vstack(h.T for h in horz_blocks))
+            __vstack([h.T for h in horz_blocks]))
 
 
 def vertcat(vert_blocks):
@@ -135,9 +121,15 @@ def vertcat(vert_blocks):
         The new vertically stacked block operator.
     '''
 
+    if len(vert_blocks) == 0:
+        raise ValueError('Vertical concatenation of empty list.')
+
     rows = sum(v.shape[0] for v in vert_blocks)
     cols = vert_blocks[0].shape[1]
+    if not all(b.shape[1] == cols for b in vert_blocks):
+        raise ValueError('''Block operator vertical concatenation failed:
+                          column mismatch.''')
 
-    return LineraOperator((rows, cols),
+    return LinearOperator((rows, cols),
             __vstack(vert_blocks),
-            __hstack(v.T for v in vert_blocks))
+            __hstack([v.T for v in vert_blocks]))
