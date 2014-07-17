@@ -110,8 +110,6 @@ def horzcat(horz_blocks):
         The new horizontally stacked block operator.
     '''
 
-    if len(horz_blocks)
-
     rows = horz_blocks[0].shape[0]
     cols = sum(h.shape[1] for h in horz_blocks)
 

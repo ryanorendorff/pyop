@@ -6,22 +6,10 @@ import pyop.operators as operators
 import random
 
 import numpy as np
+from tools import testOperatorVersusMatrix
 
 num_tests = 1000
 matrix_max_size = 100
-
-def __testOperatorVersusMatrix(mat, op):
-
-    assert mat.shape == op.shape
-
-    rand_input = np.random.rand(*(mat.shape)).T
-
-    np.testing.assert_allclose(op.dot(rand_input),
-                               mat.dot(rand_input))
-
-    np.testing.assert_allclose(op.T.dot(rand_input.T),
-                               mat.T.dot(rand_input.T))
-
 
 ###########
 #  Zeros  #
@@ -35,7 +23,7 @@ def testZerosFunction():
         Z_mat = np.zeros(shape)
         Z_op = operators.zeros(shape)
 
-        __testOperatorVersusMatrix(Z_mat, Z_op)
+        testOperatorVersusMatrix(Z_mat, Z_op)
 
 
 def testZerosAdjoint():
@@ -60,7 +48,7 @@ def testOnesFunction():
         O_mat = np.ones(shape)
         O_op = operators.ones(shape)
 
-        __testOperatorVersusMatrix(O_mat, O_op)
+        testOperatorVersusMatrix(O_mat, O_op)
 
 
 def testOnesAdjoint():
@@ -85,7 +73,7 @@ def testEyeFunction():
         I_mat = np.ones(shape)
         I_op = operators.ones(shape)
 
-        __testOperatorVersusMatrix(I_mat, I_op)
+        testOperatorVersusMatrix(I_mat, I_op)
 
 
 def testEyeAdjoint():
