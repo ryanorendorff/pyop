@@ -38,10 +38,35 @@ iop_55 = pyop.toLinearOperator(i_55)
 #                                Tests                                #
 #######################################################################
 
+############
+#  Shapes  #
+############
+
 def testShapes():
     assert a_44.shape == aop_44.shape
     assert a_44.T.shape == aop_44.T.shape
 
+
+def testNegativeShape():
+    with pytest.raises(ValueError):
+        pyop.LinearOperator((0, 1), lambda x: x)
+
+    with pytest.raises(ValueError):
+        pyop.LinearOperator((1, 0), lambda x: x)
+
+    with pytest.raises(ValueError):
+        pyop.LinearOperator((-1, 1), lambda x: x)
+
+    with pytest.raises(ValueError):
+        pyop.LinearOperator((1, -1), lambda x: x)
+
+
+def testNonIntShape():
+    with pytest.raises(ValueError):
+        pyop.LinearOperator(("a", 1), lambda x: x)
+
+    with pytest.raises(ValueError):
+        pyop.LinearOperator((1, 1.0), lambda x: x)
 
 def testForward():
     assert np.array_equal(np.dot(a_44, v_4), aop_44(v_4))
