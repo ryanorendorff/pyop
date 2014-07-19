@@ -68,6 +68,11 @@ def testNonIntShape():
     with pytest.raises(ValueError):
         pyop.LinearOperator((1, 1.0), lambda x: x)
 
+
+###########################
+#  Application Functions  #
+###########################
+
 def testForward():
     assert np.array_equal(np.dot(a_44, v_4), aop_44(v_4))
     assert np.array_equal(np.dot(c_45, x_5), cop_45(x_5))
@@ -87,6 +92,10 @@ def testAdjoint():
         a = pyop.LinearOperator((4,4), lambda _, x: x)
         a.T
 
+
+################
+#  Arithmetic  #
+################
 
 def testAdd():
     assert np.array_equal((a_44 + b_44), pyop.toMatrix(aop_44 + bop_44))
@@ -128,24 +137,6 @@ def testPos():
     assert np.array_equal(+a_44, pyop.toMatrix(+aop_44))
 
 
-def testFromMatrix():
-    aop = pyop.toLinearOperator(a_44)
-
-    assert a_44.shape == aop.shape
-    assert np.array_equal(np.dot(a_44, v_4), aop(v_4))
-    assert np.array_equal(np.dot(a_44.T, v_4), aop.T(v_4))
-
-
-def testToMatrix():
-    one = np.ones((5,4))
-
-    one_fn = lambda shape, x: np.tile(np.sum(x,0), (shape[0], 1))
-    one_op = pyop.LinearOperator((5,4), one_fn, one_fn)
-
-    assert np.array_equal(one, pyop.toMatrix(one_op))
-    assert np.array_equal(one.T, pyop.toMatrix(one_op.T))
-
-
 def testEquality():
     def func(s, x):
         return s + x
@@ -171,3 +162,26 @@ def testEquality():
 
     assert d != f
     assert e != f
+
+
+#########################
+#  To/From Matrix form  #
+#########################
+
+def testFromMatrix():
+    aop = pyop.toLinearOperator(a_44)
+
+    assert a_44.shape == aop.shape
+    assert np.array_equal(np.dot(a_44, v_4), aop(v_4))
+    assert np.array_equal(np.dot(a_44.T, v_4), aop.T(v_4))
+
+
+def testToMatrix():
+    one = np.ones((5,4))
+
+    one_fn = lambda shape, x: np.tile(np.sum(x,0), (shape[0], 1))
+    one_op = pyop.LinearOperator((5,4), one_fn, one_fn)
+
+    assert np.array_equal(one, pyop.toMatrix(one_op))
+    assert np.array_equal(one.T, pyop.toMatrix(one_op.T))
+
