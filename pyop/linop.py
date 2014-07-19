@@ -55,6 +55,13 @@ class LinearOperator(object):
             self._adjoint = adjoint
 
         assert len(shape) == 2 and isinstance(shape, tuple)
+
+        if not isinstance(shape[0], int) or not isinstance(shape[1], int):
+            raise ValueError("shape of LinearOperator contain integers")
+
+        if shape[0] <= 0 or shape[1] <= 0:
+            raise ValueError("shape of LinearOperator must be positive.")
+
         self._shape = shape
 
 
