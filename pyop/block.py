@@ -31,6 +31,68 @@ def bmat(blocks):
     return block_op
 
 
+def blockDiag(blocks):
+    ''' Converts a list of operators into a new operator.
+
+    The new operator is composed of diagonal blocks described by the list.
+
+    Parameters
+    ----------
+    blocks : [LinearOperator]
+        A list of operators that constitute consecutive blocks in a larger
+        block diagonal operator.
+
+    Returns
+    -------
+    LinearOperator
+        The new block diagonal operator.
+    '''
+
+    rows = sum(h.shape[0] for b in blocks)
+    cols = sum(h.shape[1] for b in blocks)
+
+    ## Generate a list containing the indices to split the vector x
+    ## to be sent to each component of the block operator.
+    forward_splitting_idx = cumsum([b.shape[1] for b in blocks])
+    adjoint_splitting_idx = cumsum([b.shape[0] for b in blocks])
+
+    @ensure2dColumn
+    def forwardFunction(x):
+
+        ## Split vector subcomponents on the block operator lengths.
+        ## TODO: Rename for general  matrix inputs.
+        vec_components = vsplit(x, forward_splitting_idx)
+
+        ## Apply each operator to corresponding subvector and concatenate
+        ## the results.
+        sub_outvecs = (b(v) for (b, v) in six.moves.zip(blocks,
+            vec_components))
+
+        ## Concatenate the output sub-vectors together.
+        return vstack(sub_outvecs)
+
+
+    @ensure2dColumn
+    def adjointFunction(x):
+
+        ## Split vector subcomponents on the block operator lengths.
+        ## TODO: Rename for general  matrix inputs.
+        vec_components = vsplit(x, adjoint_splitting_idx)
+
+        ## Apply each operator to corresponding subvector and concatenate
+        ## the results.
+        sub_outvecs = (b.T(v) for (b, v) in six.moves.zip(blocks,
+            vec_components))
+
+        ## Concatenate the output sub-vectors together.
+        return vstack(sub_outvecs)
+
+
+    return LinearOperator((rows, cols),
+            forwardFunction,
+            adjointFunction)
+
+
 def __hstack(horz_blocks):
     ''' Converts list of horizontal operators into one linear operator.'''
 
