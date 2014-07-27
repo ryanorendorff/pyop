@@ -12,6 +12,6 @@ from .tests import adjointTest
 
 from .utilities import ensure2dColumn, vector, vectorArray
 
-from .block import bmat, horzcat, vertcat
+from .block import bmat, blockDiag, horzcat, vertcat
 
 from . import operators

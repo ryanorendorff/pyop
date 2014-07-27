@@ -48,8 +48,11 @@ def blockDiag(blocks):
         The new block diagonal operator.
     '''
 
-    rows = sum(h.shape[0] for b in blocks)
-    cols = sum(h.shape[1] for b in blocks)
+    if len(blocks) == 0:
+        raise ValueError('Empty list supplied to diagonal block operator.')
+
+    rows = sum(b.shape[0] for b in blocks)
+    cols = sum(b.shape[1] for b in blocks)
 
     ## Generate a list containing the indices to split the vector x
     ## to be sent to each component of the block operator.
