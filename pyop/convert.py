@@ -27,8 +27,7 @@ def toLinearOperator(m):
     LinearOperator
         the transform lifted into the LinearOperator context.
     '''
-    return LinearOperator(m.shape,
-            lambda x: m.dot(x), lambda x: m.T.dot(x))
+    return LinearOperator(m.shape, m.dot, m.T.dot)
 
 
 def toMatrix(O, sparse = False):
