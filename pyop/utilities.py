@@ -18,7 +18,7 @@ def ensure2dColumn(f):
 
     Parameters
     ----------
-    f : function with arguments (op_shape, x)
+    f : function with arguments (x)
         The function to ensure that the data input (x) is at least 2
         dimensions.
 
@@ -36,7 +36,7 @@ def ensure2dColumn(f):
     >>> def squareEye(shape):
     ...     #
     ...     @ensure2dColumn
-    ...     def id(op_shape, x):
+    ...     def id(x):
     ...         return x
     ...     #
     ...     return LinearOperator((shape, shape), id, id)
@@ -47,16 +47,16 @@ def ensure2dColumn(f):
     '''
 
     @wraps(f)
-    def wrapper(op_shape, x):
+    def wrapper(x):
         ## If the input is sparse, then pass through without alteration.
         if scipy.sparse.issparse(x):
-            return f(op_shape, x)
+            return f(x)
 
         ## Convert a 1D x into a column 2D array.
         if x.ndim == 1:
             x = x.reshape(-1, 1)
 
-        res = f(op_shape, x)
+        res = f(x)
 
         ## Return 2D array to 1D if applicable.
         return  np.squeeze(res)

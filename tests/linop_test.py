@@ -138,8 +138,8 @@ def testPos():
 
 
 def testEquality():
-    def func(s, x):
-        return s + x
+    def func(x):
+        return x
 
     a = pyop.LinearOperator((4,4), func, func)
     b = pyop.LinearOperator((4,4), func, func)
@@ -150,15 +150,15 @@ def testEquality():
 
     assert a != c
 
-    d = pyop.LinearOperator((4,4), lambda s, x: func(s, x), func)
+    d = pyop.LinearOperator((4,4), lambda x:x, func)
 
     assert a != d
 
-    e = pyop.LinearOperator((4,4), lambda s, x: func(s, x), func)
+    e = pyop.LinearOperator((4,4), lambda x:x, func)
 
     assert d != e
 
-    f = pyop.LinearOperator((4,4), func, lambda s, x: func(s, x))
+    f = pyop.LinearOperator((4,4), func, lambda x:x)
 
     assert d != f
     assert e != f
@@ -179,8 +179,10 @@ def testFromMatrix():
 def testToMatrix():
     one = np.ones((5,4))
 
-    one_fn = lambda shape, x: np.tile(np.sum(x,0), (shape[0], 1))
-    one_op = pyop.LinearOperator((5,4), one_fn, one_fn)
+    shape = (5, 4)
+    one_forward = lambda x: np.tile(np.sum(x,0), (shape[0], 1))
+    one_adjoint = lambda x: np.tile(np.sum(x,0), (shape[1], 1))
+    one_op = pyop.LinearOperator((5,4), one_forward, one_adjoint)
 
     assert np.array_equal(one, pyop.toMatrix(one_op))
     assert np.array_equal(one.T, pyop.toMatrix(one_op.T))

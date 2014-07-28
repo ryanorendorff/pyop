@@ -37,10 +37,10 @@ class LinearOperator(object):
     Examples
     --------
     >>> from numpy import array
-    >>> identity = LinearOperator((4,4), lambda _, x: x)
+    >>> identity = LinearOperator((4,4), lambda x: x)
     >>> identity(array([1,2,3,4]))
     array([1, 2, 3, 4])
-    >>> identity = LinearOperator((4,4), lambda _, x: x, lambda _, x: x)
+    >>> identity = LinearOperator((4,4), lambda x: x, lambda x: x)
     >>> identity.T(array([1,2,3,4]))
     array([1, 2, 3, 4])
     '''
@@ -71,7 +71,7 @@ class LinearOperator(object):
 
 
     @staticmethod
-    def __missingAdjoint(_, __): # pylint: disable=W0613
+    def __missingAdjoint(_): # pylint: disable=W0613
         raise MissingAdjoint()
 
 
@@ -113,7 +113,7 @@ class LinearOperator(object):
 
     def __call__(self, x):
         if LinearOperator.__checkInnerDims(self, x):
-            return self._forward(self._shape, x)
+            return self._forward(x)
         else:
             raise InnerDimensionMismatch(self._shape, x.shape)
 
@@ -130,8 +130,8 @@ class LinearOperator(object):
             raise AllDimensionMismatch(self, other)
 
         return LinearOperator(self._shape,
-                lambda _, x: self(x) + other(x),
-                lambda _, x: self.T(x) + other.T(x))
+                lambda x: self(x) + other(x),
+                lambda x: self.T(x) + other.T(x))
 
 
     def __sub__(self, other):
@@ -139,8 +139,8 @@ class LinearOperator(object):
             raise AllDimensionMismatch(self, other)
 
         return LinearOperator(self._shape,
-                lambda _, x: self(x) - other(x),
-                lambda _, x: self.T(x) - other.T(x))
+                lambda x: self(x) - other(x),
+                lambda x: self.T(x) - other.T(x))
 
 
     def dot(self, other):
@@ -149,8 +149,8 @@ class LinearOperator(object):
 
     def __scaledmul__(self, other):
         return LinearOperator(self.shape,
-                lambda _, x: other*self(x),
-                lambda _, x: other*self(x))
+                lambda x: other*self(x),
+                lambda x: other*self(x))
 
 
     def __mul__(self, other):
@@ -162,8 +162,8 @@ class LinearOperator(object):
 
         if isinstance(other, LinearOperator):
             return LinearOperator((self._shape[0], other._shape[1]),
-                    lambda _, x: self(other(x)),
-                    lambda _, x: other.T(self.T(x)))
+                    lambda x: self(other(x)),
+                    lambda x: other.T(self.T(x)))
         else:
             return self(other)
 
@@ -185,8 +185,8 @@ class LinearOperator(object):
 
     def __neg__(self):
         return LinearOperator(self._shape,
-                lambda _, x: self(-x),
-                lambda _, x: self(-x))
+                lambda x: self(-x),
+                lambda x: self(-x))
 
 
     def __pos__(self):
@@ -229,6 +229,3 @@ class LinearOperator(object):
 
     def __ne__(self, other):
         return not self == other
-
-
-

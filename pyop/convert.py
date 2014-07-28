@@ -28,7 +28,7 @@ def toLinearOperator(m):
         the transform lifted into the LinearOperator context.
     '''
     return LinearOperator(m.shape,
-            lambda _, x: m.dot(x), lambda _, x: m.T.dot(x))
+            lambda x: m.dot(x), lambda x: m.T.dot(x))
 
 
 def toMatrix(O, sparse = False):
@@ -94,8 +94,8 @@ def toScipyLinearOperator(O, dtype = np.float):
     --------
     >>> import numpy as np
     >>> import scipy.sparse.linalg as linalg
-    >>> A = LinearOperator((4,4), lambda _, x: x, lambda _, x: x)
-    >>> B = LinearOperator((4,4), lambda _, x: x, lambda _, x: x)
+    >>> A = LinearOperator((4,4), lambda x: x, lambda  x: x)
+    >>> B = LinearOperator((4,4), lambda x: x, lambda  x: x)
     >>> C = (A + 2*B)
     >>> D = toScipyLinearOperator(C.T*C)
     >>> D(np.eye(4))
@@ -106,13 +106,6 @@ def toScipyLinearOperator(O, dtype = np.float):
     >>> linalg.eigsh(D, 1)[0][0] ## First eigenvalue
     9.0
     '''
-
-    def forward(x):
-        return O._forward(O.shape, x)
-
-    def adjoint(x):
-        return O._adjoint(O.shape, x)
-
-    return linalg.LinearOperator(O.shape, forward, adjoint,
+    return linalg.LinearOperator(O.shape, O._forward, O._adjoint,
             dtype=dtype)
 

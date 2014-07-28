@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.sparse
 
+from functools import partial
+
 from pyop import LinearOperator, ensure2dColumn
 
 def zeros(shape):
@@ -17,11 +19,12 @@ def zeros(shape):
         A functional version of numpy.zeros()
     '''
 
-    @ensure2dColumn
-    def zeroInput(op_shape, x):
-        return np.zeros((op_shape[0], x.shape[1]))
+    def zeroInput(x, op_shape):
+        return np.zeros((op_shape, x.shape[1]))
 
-    return LinearOperator(shape, zeroInput, zeroInput)
+    return LinearOperator(shape,
+            ensure2dColumn(partial(zeroInput, op_shape = shape[0])),
+            ensure2dColumn(partial(zeroInput, op_shape = shape[1])))
 
 
 def ones(shape):
@@ -38,12 +41,14 @@ def ones(shape):
         A functional version of numpy.ones()
     '''
 
-    @ensure2dColumn
-    def sumColumns(op_shape, x):
+    def sumColumns(x, op_shape):
         column_sums = np.sum(x, axis = 0)
-        return np.tile(column_sums, (op_shape[0], 1))
+        return np.tile(column_sums, (op_shape, 1))
 
-    return LinearOperator(shape, sumColumns, sumColumns)
+    return LinearOperator(shape,
+            ensure2dColumn(partial(sumColumns, op_shape = shape[0])),
+            ensure2dColumn(partial(sumColumns, op_shape = shape[1])))
+
 
 
 def eye(shape):
@@ -59,8 +64,7 @@ def eye(shape):
     LinearOperator
         A functional version of numpy.eye()
     '''
-    @ensure2dColumn
-    def identity(op_shape, x):
+    def identity(x, op_shape):
         m, n = op_shape
         p, q = x.shape
 
@@ -69,7 +73,9 @@ def eye(shape):
         elif m <= n:
             return x[:m]
 
-    return LinearOperator(shape, identity, identity)
+    return LinearOperator(shape,
+            ensure2dColumn(partial(identity, op_shape = shape)),
+            ensure2dColumn(partial(identity, op_shape = shape[::-1])))
 
 
 def select(rows, perm):
@@ -97,12 +103,12 @@ def select(rows, perm):
     '''
 
     @ensure2dColumn
-    def subset(_, x):
+    def subset(x):
         return x[perm]
 
     @ensure2dColumn
-    def expand(op_shape, x):
-        ret_shape = (op_shape[0], x.shape[1])
+    def expand(x):
+        ret_shape = (rows, x.shape[1])
 
         ret = np.zeros(ret_shape)
         np.add.at(ret, perm, x)
