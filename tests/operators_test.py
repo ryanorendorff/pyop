@@ -111,3 +111,25 @@ def testSelectAdjoint():
         S_op = operators.select(rows, perm)
 
         pyop.adjointTest(S_op)
+
+
+##########
+#  Diag  #
+##########
+def testDiagFunction():
+    for _ in range(num_tests):
+        rand_vec = np.random.rand(random.randint(1, 100))
+
+        D_mat = np.diag(rand_vec)
+        D_op  = operators.diag(rand_vec)
+
+        __testOperatorVersusMatrix(D_mat, D_op)
+
+
+def testDiagAdjoint():
+    for _ in range(num_tests):
+        rand_vec = np.random.rand(random.randint(1, 100))
+
+        D_op = operators.diag(rand_vec)
+
+        pyop.adjointTest(D_op)
