@@ -126,6 +126,14 @@ def testDiagFunction():
         __testOperatorVersusMatrix(D_mat, D_op)
 
 
+def testDiagVector():
+    ## Tests a vector input, which fails without ensure2dColumn
+    D = pyop.operators.diag(np.array([1, 2, 1, 1]))
+
+    np.testing.assert_allclose(D(np.array([2, 2, 2, 2])),
+                               np.array([2, 4, 2, 2]))
+
+
 def testDiagAdjoint():
     for _ in range(num_tests):
         rand_vec = np.random.rand(random.randint(1, 100))

@@ -135,6 +135,7 @@ def diag(v):
         A LinearOperator that scales np.array inputs.
     '''
 
+    @ensure2dColumn
     def forwardAdjoint(x):
         return v[:, np.newaxis] * x
 
