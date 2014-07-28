@@ -3,4 +3,5 @@ from .matrix_operators import (
         , ones
         , eye
         , select
+        , diag
     )

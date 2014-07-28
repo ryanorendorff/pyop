@@ -116,3 +116,29 @@ def select(rows, perm):
         return ret
 
     return LinearOperator((len(perm), rows), subset, expand)
+
+
+def diag(v):
+    ''' Create a LinearOperator that emulates a diagonal matrix.
+
+    Creates a LinearOperator that scales each row of its input by the
+    corresponding element of the input vector v. The length of the vector v
+    defines the shape of the operator (n by n).
+
+    Parameters
+    ----------
+    v : 1-D array
+        An array by which to scale each of rows of the input.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator that scales np.array inputs.
+    '''
+
+    def forwardAdjoint(x):
+        return v[:, np.newaxis] * x
+
+    return LinearOperator( (len(v), len(v)),
+            forwardAdjoint, forwardAdjoint)
+
