@@ -1,7 +1,9 @@
 import numpy as np
 import scipy.sparse
 
-from functools import wraps
+from functools import update_wrapper
+
+import six
 
 def ensure2dColumn(f):
     ''' Convert 1D array input to 2D column array and back to 1D after
@@ -46,7 +48,6 @@ def ensure2dColumn(f):
     array([0, 1, 2, 3])
     '''
 
-    @wraps(f)
     def wrapper(x):
         ## If the input is sparse, then pass through without alteration.
         if scipy.sparse.issparse(x):
@@ -61,4 +62,7 @@ def ensure2dColumn(f):
         ## Return 2D array to 1D if applicable.
         return  np.squeeze(res)
 
-    return wrapper
+    if six.PY2:
+        return wrapper
+    else:
+        return update_wrapper(wrapper, f)
