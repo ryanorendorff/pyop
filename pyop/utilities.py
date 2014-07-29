@@ -66,3 +66,58 @@ def ensure2dColumn(f):
         return wrapper
     else:
         return update_wrapper(wrapper, f)
+
+
+def vector(f):
+    ''' Operates on an input matrix one column at a time.
+
+    A function that implements a matrix-matrix function from a matrix-
+    vector function. This decorator takes an input matrix, feeds each column
+    as a 1D vector to the function f, and then combines the results.
+
+    Often it is more natural to define the matrix-vector function, since
+    the matrix-matrix function is just the collection of the matrix-vector
+    function applied to each column of the input. For these cases, use this
+    decorator.
+
+    Parameters
+    ----------
+    f : function with arguments (x)
+        The function that implements a matrix-vector product.
+
+    Returns
+    -------
+    function
+        A function that implements a matrix-matrix function.
+
+    See Also
+    --------
+    ensure2dColumn : ensures the input to a function is 2 dimensional.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop import vector
+    >>> #
+    >>> @vector
+    ... def multFirstColumn(column):
+    ...     img = column.reshape((2, 2), order = 'C')
+    ...     img[:, 0] *= 2
+    ...     return img.flatten(0)
+    >>> #
+    >>> multFirstColumn(np.array([[1, 1, 1, 1], [2, 1, 2, 1]]).T)
+    array([[2, 4],
+           [1, 1],
+           [2, 4],
+           [1, 1]])
+    '''
+
+    @ensure2dColumn
+    def wrapper(x):
+        return np.column_stack(f(c) for c in x.T)
+
+    if six.PY2:
+        return wrapper
+    else:
+        return update_wrapper(wrapper, f)
+
