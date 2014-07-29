@@ -6,8 +6,7 @@ from functools import update_wrapper
 import six
 
 def ensure2dColumn(f):
-    ''' Convert 1D array input to 2D column array and back to 1D after
-    calculation.
+    ''' Convert 1D array to 2D column array and back to 1D after calculation
 
     This function is meant to work only with functions following the
     LinearOperator calling declaration, where the first argument is the
