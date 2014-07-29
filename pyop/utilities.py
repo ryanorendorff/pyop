@@ -5,6 +5,13 @@ from functools import update_wrapper
 
 import six
 
+def __wrapIfPy3(wrapper, f):
+    if six.PY2:
+        return wrapper
+    else:
+        return update_wrapper(wrapper, f)
+
+
 def ensure2dColumn(f):
     ''' Convert 1D array to 2D column array and back to 1D after calculation
 
@@ -67,10 +74,7 @@ def ensure2dColumn(f):
 
         return res
 
-    if six.PY2:
-        return wrapper
-    else:
-        return update_wrapper(wrapper, f)
+    return __wrapIfPy3(wrapper, f)
 
 
 def vector(f):
@@ -121,8 +125,5 @@ def vector(f):
     def wrapper(x):
         return np.column_stack(f(c) for c in x.T)
 
-    if six.PY2:
-        return wrapper
-    else:
-        return update_wrapper(wrapper, f)
+    return __wrapIfPy3(wrapper, f)
 
