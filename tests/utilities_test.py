@@ -31,13 +31,14 @@ def testEnsure2dColumn(capsys):
 
 
 ############
-#  Vector  #
+#  vector  #
 ############
+
 @pyop.vector
 def multFirstColumn(column):
     img = column.reshape((2, 2), order = 'C')
     img[:, 0] *= 2
-    return img.flatten(0)
+    return np.ravel(img, order = 'C')
 
 
 def testVectorOnMatrix():
@@ -49,4 +50,26 @@ def testVectorOnMatrix():
 def testVectorOnVector():
     np.testing.assert_allclose(
         multFirstColumn(np.array([1, 1, 1, 1])),
+        np.array(np.array([2, 1, 2, 1])))
+
+
+#################
+#  vectorArray  #
+#################
+
+@pyop.vectorArray((2,2))
+def multFirstColumnImg(img):
+    img[:, 0] *= 2
+    return img
+
+
+def testVectorArrayOnMatrix():
+    np.testing.assert_allclose(
+        multFirstColumnImg(np.array([[1, 1, 1, 1], [2, 1, 2, 1]]).T),
+        np.array([[2, 4], [1, 1], [2, 4], [1, 1]]))
+
+
+def testVectorArrayOnVector():
+    np.testing.assert_allclose(
+        multFirstColumnImg(np.array([1, 1, 1, 1])),
         np.array(np.array([2, 1, 2, 1])))
