@@ -58,8 +58,14 @@ def ensure2dColumn(f):
 
         res = f(x)
 
-        ## Return 2D array to 1D if applicable.
-        return  np.squeeze(res)
+        ## Remove singleton dimensions, but not if both are singletons, as
+        ## this was actually a matrix-matrix multiply.
+        if res.shape[0] is 1 and res.shape[1] is 1:
+            return res
+        if res.shape[0] is 1 or res.shape[1] is 1:
+            return np.squeeze(res)
+
+        return res
 
     if six.PY2:
         return wrapper
