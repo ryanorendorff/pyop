@@ -1,5 +1,7 @@
-from pyop.error import \
-        AllDimensionMismatch, InnerDimensionMismatch, MissingAdjoint
+from pyop.error import (
+        AllDimensionMismatch, InnerDimensionMismatch, MissingAdjoint,
+        DimensionMismatch, ZeroDimension, HighOrderTensor
+        )
 
 ## For __pow__
 from itertools import repeat
@@ -111,11 +113,38 @@ class LinearOperator(object):
         return a.shape[1] == b.shape[0]
 
 
-    def __call__(self, x):
-        if LinearOperator.__checkInnerDims(self, x):
-            return self._forward(x)
+    @staticmethod
+    def __upgradeShapeToMatrix(shape):
+        if len(shape) is 0:
+            raise ZeroDimension(shape)
+        elif len(shape) is 1:
+            return(shape[0], 1)
+        elif len(shape) is 2:
+            return shape
         else:
+            raise HighOrderTensor(shape)
+
+
+    def __call__(self, x):
+
+        ## Don't do the calculation if the shape makes no sense.
+        x_shape = LinearOperator.__upgradeShapeToMatrix(x.shape)
+
+        if not LinearOperator.__checkInnerDims(self, x):
             raise InnerDimensionMismatch(self._shape, x.shape)
+
+        ## Actually do the calculation.
+        result = self._forward(x)
+
+        result_shape = LinearOperator.__upgradeShapeToMatrix(result.shape)
+
+        if result_shape != (self._shape[0], x_shape[1]):
+            raise DimensionMismatch(
+                    "Forward of LinearOperator did not return a result "
+                    "congruent with its shape {}. "
+                    "Result shape {}".format(self._shape, result_shape))
+
+        return result
 
 
     ## Numpy 1.9 will allow overriding dot.
