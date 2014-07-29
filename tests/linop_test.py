@@ -69,6 +69,33 @@ def testNonIntShape():
         pyop.LinearOperator((1, 1.0), lambda x: x)
 
 
+def testShapeMismatch():
+    A = pyop.LinearOperator((4, 4), lambda x: np.zeros((5,5)))
+
+    with pytest.raises(pyop.error.DimensionMismatch):
+        A(np.empty((4, 1)))
+
+
+def testInputWrongShape():
+    A = pyop.LinearOperator((4, 4), lambda x: np.zeros((5,5)))
+
+    with pytest.raises(pyop.error.ZeroDimension):
+        A(np.array(0))
+
+    with pytest.raises(pyop.error.HighOrderTensor):
+        A(np.empty((4, 1, 1)))
+
+
+def testReturnWrongShape():
+    A = pyop.LinearOperator((4, 4), lambda x: np.array(5))
+    B = pyop.LinearOperator((4, 4), lambda x: np.zeros((5, 5, 5)))
+
+    with pytest.raises(pyop.error.ZeroDimension):
+        A(np.empty((4, 1)))
+
+    with pytest.raises(pyop.error.HighOrderTensor):
+        B(np.empty((4, 1)))
+
 ###########################
 #  Application Functions  #
 ###########################
