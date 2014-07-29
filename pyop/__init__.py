@@ -10,6 +10,6 @@ from .convert import(
 
 from .tests import adjointTest
 
-from .utilities import ensure2dColumn, vector
+from .utilities import ensure2dColumn, vector, vectorArray
 
 from . import operators

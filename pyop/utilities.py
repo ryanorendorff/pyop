@@ -36,6 +36,11 @@ def ensure2dColumn(f):
         A function that ensures the input data is at least 2 dimensional and
         that the result is a 1D array, in the case of a dense input.
 
+    See Also
+    --------
+    vector : Defines a matrix-matrix( function from matrix-vector.
+    vectorArray : Like vector but reshapes the input automatically.
+
     Examples
     --------
     >>> import numpy as np
@@ -102,6 +107,7 @@ def vector(f):
     See Also
     --------
     ensure2dColumn : ensures the input to a function is 2 dimensional.
+    vectorArray : Like vector but reshapes the input automatically.
 
     Examples
     --------
@@ -127,3 +133,58 @@ def vector(f):
 
     return __wrapIfPy3(wrapper, f)
 
+
+def vectorArray(shape, order = 'C'):
+    ''' Decorator to turn a function on a matrix into matrix-matrix product.
+
+    This decorator is an extension of vector
+
+    Parameters
+    ----------
+    shape : tuple
+        The shape of the data in non-vector form.
+
+    order = {'C', 'F', 'A'}, optional
+        The order by which the vectorized image is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    function
+        A function that can be used to decorate another function.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop import vectorArray
+    >>> #
+    >>> @vectorArray((2, 2))
+    ... def multFirstColumn(img):
+    ...     img[:, 0] *= 2
+    ...     return img
+    >>> #
+    >>> multFirstColumn(np.array([[1, 1, 1, 1], [2, 1, 2, 1]]).T)
+    array([[2, 4],
+           [1, 1],
+           [2, 4],
+           [1, 1]])
+
+    See Also
+    --------
+    ensure2dColumn : ensures the input to a function is 2 dimensional.
+    vector : Like vectorArray but does not reshapes the input.
+    '''
+    def decorator(f):
+
+        @vector
+        def wrapper(column):
+            arr = np.reshape(column, shape, order)
+            res = f(arr)
+            return np.ravel(res, order)
+
+        return __wrapIfPy3(wrapper, f)
+
+    return decorator
