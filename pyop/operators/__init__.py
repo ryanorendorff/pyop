@@ -5,3 +5,5 @@ from .matrix_operators import (
         , select
         , diag
     )
+
+from .vectorized import convolve
