@@ -1,5 +1,4 @@
 #pylint: disable=W0104,W0108
-import pytest
 import pyop
 import pyop.operators as operators
 
@@ -8,8 +7,8 @@ import random
 import numpy as np
 from tools import operatorVersusMatrix
 
-num_tests = 1000
-matrix_max_size = 100
+num_tests = 250
+matrix_max_size = 10
 
 ###########
 #  Zeros  #
