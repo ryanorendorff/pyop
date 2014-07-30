@@ -66,16 +66,14 @@ def ensure2dColumn(f):
 
         ## Convert a 1D x into a column 2D array.
         if x.ndim == 1:
-            x = x.reshape(-1, 1)
+            y = x.reshape(-1, 1)
+        else:
+            y = x
 
-        res = f(x)
+        res = f(y)
 
-        ## Remove singleton dimensions, but not if both are singletons, as
-        ## this was actually a matrix-matrix multiply.
-        if res.shape[0] is 1 and res.shape[1] is 1:
-            return res
-        if res.shape[0] is 1 or res.shape[1] is 1:
-            return np.squeeze(res)
+        if x.ndim == 1:
+            return np.ravel(res)
 
         return res
 
