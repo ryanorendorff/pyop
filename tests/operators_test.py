@@ -123,7 +123,7 @@ def testDiagFunction():
         D_mat = np.diag(rand_vec)
         D_op  = operators.diag(rand_vec)
 
-        __testOperatorVersusMatrix(D_mat, D_op)
+        operatorVersusMatrix(D_mat, D_op)
 
 
 def testDiagVector():
