@@ -1,3 +1,7 @@
+'''
+Utilities for converting to and from a :class:`.LinearOperator`.
+'''
+
 from pyop.linop import LinearOperator
 
 
@@ -31,6 +35,21 @@ def toLinearOperator(m):
     ------
     ValueError
         When the input dimension is not equal to 2.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop import toLinearOperator
+    >>> A = np.array([[1, 2], [3, 4]])
+    >>> A_op = toLinearOperator(A)
+    >>> A_op(np.array([1, 1]))
+    array([3, 7])
+
+    See Also
+    --------
+    toMatrix : Convert a LinearOperator to a matrix.
+    toScipyLinearOperator : Convert a LinearOperator to the SciPy version
+        of a LinearOperator.
     '''
     if len(m.shape) == 1:
         raise ValueError("Cannot convert 1D to LinearOperator")
@@ -56,7 +75,7 @@ def toMatrix(O, sparse = False):
 
     Parameters
     ----------
-    sparse: bool, optional
+    sparse : bool, optional
         Passes in a sparse matrix to the LinearOperator instead of a dense
         one. For this parameter to work, the functions that a LinearOperator
         calls (forward, adjoint) must respect the type of the input.
@@ -65,6 +84,21 @@ def toMatrix(O, sparse = False):
     -------
     numpy.ndarray
         the matrix representation of the transform.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop import LinearOperator, toMatrix
+    >>> A_op = LinearOperator((2, 2), lambda x: x)
+    >>> toMatrix(A_op)
+    array([[ 1.,  0.],
+           [ 0.,  1.]])
+
+    See Also
+    --------
+    toLinearOperator : Convert a matrix to a LinearOperator.
+    toScipyLinearOperator : Convert a LinearOperator to the SciPy version
+        of a LinearOperator.
     '''
     if sparse:
         I = sp.eye(O.shape[1])
@@ -91,7 +125,7 @@ def toScipyLinearOperator(O, dtype = np.float):
 
     Parameters
     ----------
-    O: LinearOperator
+    O : LinearOperator
         The LinearOperator to convert into the Scipy format.
 
     Returns
@@ -115,6 +149,11 @@ def toScipyLinearOperator(O, dtype = np.float):
            [ 0.,  0.,  0.,  9.]])
     >>> linalg.eigsh(D, 1)[0][0] ## First eigenvalue
     9.0
+
+    See Also
+    --------
+    toMatrix : Convert a LinearOperator to a matrix.
+    toLinearOperator : Convert a matrix to a LinearOperator.
     '''
     return linalg.LinearOperator(O.shape, O._forward, O._adjoint,
             dtype=dtype)
