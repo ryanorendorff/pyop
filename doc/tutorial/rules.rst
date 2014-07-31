@@ -1,7 +1,7 @@
 Operator Rules
 ==============
 
-The most basic form of a :class:`pyop.linop.LinearOperator` takes in a shape
+The most basic form of a :class:`~pyop.linop.LinearOperator` takes in a shape
 defining the operation and a function (called the forward function) that
 operators on only one input. However, certain operators are practically
 useless. ::
@@ -12,8 +12,8 @@ useless. ::
 There is unfortunately no way to determine if a given forward function
 is the correct operator or that the input is correct type (this is
 an problem of no type system in Python). This is not to say that
-:class:`pyop.linop.LinearOperator` does not perform any checking; upon the
-application of a :class:`pyop.linop.LinearOperator`, the ``call`` method
+:class:`~pyop.linop.LinearOperator` does not perform any checking; upon the
+application of a :class:`~pyop.linop.LinearOperator`, the ``call`` method
 will check that
 
 - both the operator and the input have a shape attribute,
@@ -46,12 +46,12 @@ rules will help ensure that an operator is functioning properly.
 The Rules
 ---------
 
-1. :class:`pyop.linop.LinearOperator` instances are nearly useless without an
+1. :class:`~pyop.linop.LinearOperator` instances are nearly useless without an
    adjoint function. While it is not required, it becomes impossible to
    perform calculations such as an eigenvalue decomposition without an
    adjoint, as well as any first order convex optimization solver.
-2. For :class:`pyop.linop.LinearOperator` instances that have an adjoint
-   function defined, they should pass the :func:`pyop.tests.adjointTest`.
+2. For :class:`~pyop.linop.LinearOperator` instances that have an adjoint
+   function defined, they should pass the :func:`~pyop.tests.adjointTest`.
    This is a basic check that the forward and adjoint are indeed are each
    other's "opposites", although it does not guarantee that the operator is
    defined correctly.
@@ -68,10 +68,10 @@ The Rules
    when the inputs are NumPy arrays. This is to say that the functions
    should be defined as matrix-matrix multiplications instead of
    matrix-vector multiplications, for example. This allows for
-   the :func:`pyop.convert.toMatrix` function to work, which is
+   the :func:`~pyop.convert.toMatrix` function to work, which is
    helpful for turning an operator into its matrix form for further
    manipulation (for example, factorization or low rank approximations).
-   :func:`pyop.convert.toMatrix` even works on operators that are created
+   :func:`~pyop.convert.toMatrix` even works on operators that are created
    out of any of the composition or combining tools, as long as all the
    functions are defined as matrix-matrix multiplies.
 6. Do not make operator functions that hold state. Since the forward
@@ -112,7 +112,7 @@ experience.
   putting them inside either a nested function or a class. They are simpler
   to iterate through in this form, while the nested/class form is really
   just a nice (simple) packaging of the result.
-- Use the :mod:`pyop.utilities` decorators when possible to ease the
+- Use the :mod:`~pyop.utilities` decorators when possible to ease the
   creation of matrix-matrix functions. These decorators convert vector or
   vectorized (a nD array vectorized) functions to matrix-matrix functions
   and take care of concatenating the results together, flattening along the
@@ -123,16 +123,16 @@ Notes
 -----
 
 One thing to note is that these checks do `not` specify the input data
-type. While the input to a :class:`pyop.linop.LinearOperator` is often a
+type. While the input to a :class:`~pyop.linop.LinearOperator` is often a
 NumPy ndarray, it is entirely possible to use any input type that defines
 a shape pair. This could be useful, for example, if the input was a graph
 that was simpler to express and operate on as a ``Graph`` type instead of an
 adjacency matrix. This is an (accidental) result of Python's duck typing.
 
-:class:`pyop.linop.LinearOperator` instances are designed to behave
+:class:`~pyop.linop.LinearOperator` instances are designed to behave
 in an `immutable` manner, although they are strictly not immutable as
 a determined programmer can always redefine the functions held by a
-,:class:`pyop.linop.LinearOperator` or modify the instance (or class)
+:class:`~pyop.linop.LinearOperator` or modify the instance (or class)
 at runtime. However, in the course of normal programming, they can be
 treated as a non-hashable immutable (I realise the silliness) as all of the
 composition rules create new operators containing the old ones. This means

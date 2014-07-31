@@ -1,17 +1,17 @@
 Linear Operator Tutorial
 ========================
 
-:class:`pyop.linop.LinearOperators` are actually quite simple to create.
-The most simple case is to just pass forward and adjoint functions to the
-:class:`pyop.linop.LinearOperator` constructor, like the following example
-that implements a square identity. ::
+:class:`~pyop.linop.LinearOperator` instances are actually quite simple to
+create. The most simple case is to just pass forward and adjoint functions
+to the :class:`~pyop.linop.LinearOperator` constructor, like the following
+example that implements a square identity. ::
 
   def id(x):
     return x
 
   I = LinearOperator((4, 4), id, id)
 
-Often it is helpful to create a :class:`pyop.linop.LinearOperator` in a
+Often it is helpful to create a :class:`~pyop.linop.LinearOperator` in a
 nested function to create many similar operators that define the same basic
 morphism over different dimensions. ::
 
