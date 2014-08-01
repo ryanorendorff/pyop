@@ -6,7 +6,7 @@ Operators specified in this format have a few benefits.
 
 - The memory to store the operator can be much smaller. For example,
   an image reconstruction done by the authors used to require storing
-  a _sparse_ marix that was over 150 GB. With this matrix free version,
+  a `sparse` marix that was over 150 GB. With this matrix free version,
   the amount of space went down to kilobytes.
 - The time to perform an operation can be greatly reduced. In the same
   image reconstruction problem, converting only one of the operations
