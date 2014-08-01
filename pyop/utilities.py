@@ -1,9 +1,9 @@
 '''
 Often, certain forward and adjoint functions are simpler to define as a
-matrix-vector multiplication or are simpler to interpret on a reshape
-version of the input. The decorators defined here allow for functions of
-these forms to be modified to matrix-matrix functions easily. The examples
-for each decorator give a good sample of how to use such functions.
+matrix-matrix multiplication or to operate on a reshape version of the
+input. The decorators defined here allow for functions of these forms to be
+modified to matrix-matrix functions easily. The examples for each decorator
+give a good sample of how to use such functions.
 '''
 
 import numpy as np
