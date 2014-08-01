@@ -114,7 +114,7 @@ def testDiagFunction():
 
 
 def testDiagVector():
-    ## Tests a vector input, which fails without ensure2dColumn
+    ## Tests a vector input, which fails without matmat
     D = pyop.operators.diag(np.array([1, 2, 1, 1]))
 
     np.testing.assert_allclose(D(np.array([2, 2, 2, 2])),

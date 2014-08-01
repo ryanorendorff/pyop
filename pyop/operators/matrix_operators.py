@@ -2,7 +2,7 @@ import numpy as np
 
 from functools import partial
 
-from pyop import LinearOperator, ensure2dColumn
+from pyop import LinearOperator, matmat
 
 def zeros(shape):
     ''' PyOp version of zeros array function (only 2D).
@@ -22,8 +22,8 @@ def zeros(shape):
         return np.zeros((op_shape, x.shape[1]))
 
     return LinearOperator(shape,
-            ensure2dColumn(partial(zeroInput, op_shape = shape[0])),
-            ensure2dColumn(partial(zeroInput, op_shape = shape[1])))
+            matmat(partial(zeroInput, op_shape = shape[0])),
+            matmat(partial(zeroInput, op_shape = shape[1])))
 
 
 def ones(shape):
@@ -45,8 +45,8 @@ def ones(shape):
         return np.tile(column_sums, (op_shape, 1))
 
     return LinearOperator(shape,
-            ensure2dColumn(partial(sumColumns, op_shape = shape[0])),
-            ensure2dColumn(partial(sumColumns, op_shape = shape[1])))
+            matmat(partial(sumColumns, op_shape = shape[0])),
+            matmat(partial(sumColumns, op_shape = shape[1])))
 
 
 
@@ -73,8 +73,8 @@ def eye(shape):
             return x[:m]
 
     return LinearOperator(shape,
-            ensure2dColumn(partial(identity, op_shape = shape)),
-            ensure2dColumn(partial(identity, op_shape = shape[::-1])))
+            matmat(partial(identity, op_shape = shape)),
+            matmat(partial(identity, op_shape = shape[::-1])))
 
 
 def select(rows, perm):
@@ -101,11 +101,11 @@ def select(rows, perm):
         A LinearOperator that performs the selection on np.array inputs.
     '''
 
-    @ensure2dColumn
+    @matmat
     def subset(x):
         return x[perm]
 
-    @ensure2dColumn
+    @matmat
     def expand(x):
         ret_shape = (rows, x.shape[1])
 
@@ -135,7 +135,7 @@ def diag(v):
         A LinearOperator that scales np.array inputs.
     '''
 
-    @ensure2dColumn
+    @matmat
     def forwardAdjoint(x):
         return v[:, np.newaxis] * x
 

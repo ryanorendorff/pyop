@@ -1,5 +1,5 @@
 from numpy import vsplit, vstack, tile, concatenate, cumsum, add
-from pyop import LinearOperator, ensure2dColumn
+from pyop import LinearOperator, matmat
 
 import six
 
@@ -59,7 +59,7 @@ def blockDiag(blocks):
     forward_splitting_idx = cumsum([b.shape[1] for b in blocks])
     adjoint_splitting_idx = cumsum([b.shape[0] for b in blocks])
 
-    @ensure2dColumn
+    @matmat
     def forwardFunction(x):
 
         ## Split vector subcomponents on the block operator lengths.
@@ -75,7 +75,7 @@ def blockDiag(blocks):
         return vstack(sub_outvecs)
 
 
-    @ensure2dColumn
+    @matmat
     def adjointFunction(x):
 
         ## Split vector subcomponents on the block operator lengths.
@@ -103,7 +103,7 @@ def __hstack(horz_blocks):
     ## to be sent to each component of the block operator.
     splitting_idx = cumsum([b.shape[1] for b in horz_blocks])
 
-    @ensure2dColumn
+    @matmat
     def opFunction(x):
 
         ## Split vector subcomponents based on the block operator lengths.
@@ -125,7 +125,7 @@ def __hstack(horz_blocks):
 def __vstack(vert_blocks):
     ''' Converts list of vertical operators into one operator.'''
 
-    @ensure2dColumn
+    @matmat
     def opFunction(x):
 
         ## Apply each operator (forward or adjoint) to the input vector to

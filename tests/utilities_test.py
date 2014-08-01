@@ -8,9 +8,9 @@ import numpy as np
 #                                Tests                                #
 #######################################################################
 
-def testEnsure2dColumn(capsys):
+def tesMatmat(capsys):
 
-    @pyop.ensure2dColumn
+    @pyop.matmat
     def printShape(x):
         print(x.shape)
         return x
@@ -34,7 +34,7 @@ def testEnsure2dColumn(capsys):
 #  vector  #
 ############
 
-@pyop.vector
+@pyop.matvec
 def multFirstColumn(column):
     img = column.reshape((2, 2), order = 'C')
     img[:, 0] *= 2
@@ -57,7 +57,7 @@ def testVectorOnVector():
 #  vectorArray  #
 #################
 
-@pyop.vectorArray((2,2))
+@pyop.matvectorized((2,2))
 def multFirstColumnImg(img):
     img[:, 0] *= 2
     return img
