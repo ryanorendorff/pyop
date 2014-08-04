@@ -58,7 +58,7 @@ def toMatrix(O, sparse = False):
     if sparse:
         I = sp.eye(O.shape[1])
     else:
-        I = np.eye(O.shape[1])
+        I = np.eye(O.shape[1]).T ## Turn into Fortran ordering.
 
     return O(I)
 
