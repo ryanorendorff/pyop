@@ -4,6 +4,7 @@ import pyop
 
 import numpy as np
 
+from tools import operatorVersusMatrix
 
 #####################
 #  Common Matrices  #
@@ -150,6 +151,12 @@ def testMul():
 
     np.testing.assert_allclose(np.dot(np.dot(c_45, d_54), a_44),
                           pyop.toMatrix(cop_45*dop_54*aop_44))
+
+
+def testScaledMul():
+    operatorVersusMatrix(2*a_44, 2*aop_44)
+    operatorVersusMatrix(a_44*2, aop_44*2)
+
 
 def testPow():
     assert np.array_equal(np.dot(a_44, np.dot(a_44, np.dot(a_44, a_44))),

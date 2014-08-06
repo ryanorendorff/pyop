@@ -178,8 +178,8 @@ class LinearOperator(object):
 
     def __scaledmul__(self, other):
         return LinearOperator(self.shape,
-                lambda x: other*self(x),
-                lambda x: other*self(x))
+                lambda x: self(other*x),
+                lambda x: self.T(other*x))
 
 
     def __mul__(self, other):
