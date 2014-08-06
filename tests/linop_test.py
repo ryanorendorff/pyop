@@ -128,6 +128,8 @@ def testAdjoint():
 def testAdd():
     assert np.array_equal((a_44 + b_44), pyop.toMatrix(aop_44 + bop_44))
 
+    operatorVersusMatrix((a_44 + b_44), (aop_44 + bop_44))
+
     with pytest.raises(pyop.error.AllDimensionMismatch):
         aop_44 + cop_45
 
@@ -137,6 +139,8 @@ def testAdd():
 
 def testSub():
     assert np.array_equal((a_44 - b_44), pyop.toMatrix(aop_44 - bop_44))
+
+    operatorVersusMatrix((a_44 - b_44), (aop_44 - bop_44))
 
     with pytest.raises(pyop.error.AllDimensionMismatch):
         aop_44 - cop_45
@@ -148,6 +152,8 @@ def testSub():
 def testMul():
     assert np.array_equal(np.dot(a_44, b_44),
             pyop.toMatrix(aop_44 * bop_44))
+
+    operatorVersusMatrix(np.dot(a_44, b_44), (aop_44 * bop_44))
 
     np.testing.assert_allclose(np.dot(np.dot(c_45, d_54), a_44),
                           pyop.toMatrix(cop_45*dop_54*aop_44))
@@ -162,6 +168,9 @@ def testPow():
     assert np.array_equal(np.dot(a_44, np.dot(a_44, np.dot(a_44, a_44))),
             pyop.toMatrix(aop_44**4))
 
+    operatorVersusMatrix(np.dot(a_44, np.dot(a_44, np.dot(a_44, a_44))),
+            aop_44**4)
+
 
 def testNeg():
     assert np.array_equal(-a_44, pyop.toMatrix(-aop_44))
@@ -171,6 +180,8 @@ def testNeg():
 
 def testPos():
     assert np.array_equal(+a_44, pyop.toMatrix(+aop_44))
+
+    operatorVersusMatrix(+a_44, +aop_44)
 
 
 def testEquality():
