@@ -215,7 +215,7 @@ class LinearOperator(object):
     def __neg__(self):
         return LinearOperator(self._shape,
                 lambda x: self(-x),
-                lambda x: self(-x))
+                lambda x: self.T(-x))
 
 
     def __pos__(self):

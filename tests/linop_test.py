@@ -166,6 +166,8 @@ def testPow():
 def testNeg():
     assert np.array_equal(-a_44, pyop.toMatrix(-aop_44))
 
+    operatorVersusMatrix(-a_44, -aop_44)
+
 
 def testPos():
     assert np.array_equal(+a_44, pyop.toMatrix(+aop_44))
