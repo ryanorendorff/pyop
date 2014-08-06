@@ -26,7 +26,18 @@ def toLinearOperator(m):
     -------
     LinearOperator
         the transform lifted into the LinearOperator context.
+
+    Raises
+    ------
+    ValueError
+        When the input dimension is not equal to 2.
     '''
+    if len(m.shape) == 1:
+        raise ValueError("Cannot convert 1D to LinearOperator")
+
+    if len(m.shape) > 2:
+        raise ValueError("Cannot convert 3+D to LinearOperator")
+
     return LinearOperator(m.shape, m.dot, m.T.dot)
 
 

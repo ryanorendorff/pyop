@@ -1,4 +1,5 @@
 #pylint: disable=W0104,W0108
+import pytest
 import pyop
 
 import random
@@ -37,6 +38,24 @@ def testToLinearOperator():
         A_op = pyop.toLinearOperator(A_mat)
 
         __testOperatorVersusMatrix(A_mat, A_op)
+
+
+def testToLinearOperatorInputCheck():
+    vec = np.ones(1)
+    twod = np.ones((1,1))
+    threed = np.ones((1,1,1))
+    fourd = np.ones((1,1,1,1))
+
+    with pytest.raises(ValueError):
+        pyop.toLinearOperator(vec)
+
+    _ = pyop.toLinearOperator(twod)
+
+    with pytest.raises(ValueError):
+        pyop.toLinearOperator(threed)
+
+    with pytest.raises(ValueError):
+        pyop.toLinearOperator(fourd)
 
 
 def testToMatrix():
