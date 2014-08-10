@@ -6,20 +6,11 @@ import random
 
 import numpy as np
 
+from tools import operatorVersusMatrix
+
+
 num_tests = 100
 matrix_max_size = 100
-
-def __testOperatorVersusMatrix(mat, op):
-
-    assert mat.shape == op.shape
-
-    rand_input = np.random.rand(*(mat.shape)).T
-
-    np.testing.assert_allclose(op.dot(rand_input),
-                               mat.dot(rand_input))
-
-    np.testing.assert_allclose(op.T.dot(rand_input.T),
-                               mat.T.dot(rand_input.T))
 
 
 #######################################################################
@@ -37,7 +28,7 @@ def testToLinearOperator():
 
         A_op = pyop.toLinearOperator(A_mat)
 
-        __testOperatorVersusMatrix(A_mat, A_op)
+        operatorVersusMatrix(A_mat, A_op)
 
 
 def testToLinearOperatorInputCheck():
