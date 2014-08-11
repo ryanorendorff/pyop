@@ -7,3 +7,8 @@ from .matrix_operators import (
     )
 
 from .vectorized import convolve
+
+from .fft import (
+        fft,
+        ifft,
+    )
