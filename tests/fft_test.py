@@ -6,6 +6,9 @@ import random
 import pyop.operators as operators
 import pyop
 
+from functools import reduce
+from operator import mul
+
 num_tests = 100
 
 array_max_size = 5
@@ -151,3 +154,48 @@ def testIfftshiftRandom():
             np.reshape(F._forward(np.ravel(arr, order)), arr.shape, order),
             np.fft.ifftshift(arr, axes))
 
+
+####################
+#  FFT Wrap Tests  #
+####################
+
+def identityOp(shape):
+    return pyop.LinearOperator((shape, shape), lambda x: x, lambda x: x)
+
+
+def testFftwrapRandom():
+    for _ in range(num_tests):
+        d = random.randint(1, dimensions_max + 1)
+
+        arr = np.random.rand(*tuple(
+            random.randint(1, array_max_size + 1) for _ in range(d)))
+
+        s = tuple(random.randint(1, array_max_size*2) for _ in range(d))
+
+        shift = random.choice(("all", "none", randomAxes(arr.ndim - 1)))
+
+        order = random.choice(('C', 'F'))
+
+        I = identityOp(reduce(mul, s))
+        J = operators.fftwrap(I, arr.shape, s, shift, order)
+
+        pyop.adjointTest(J)
+
+
+def testIfftwrapRandom():
+    for _ in range(num_tests):
+        d = random.randint(1, dimensions_max + 1)
+
+        arr = np.random.rand(*tuple(
+            random.randint(1, array_max_size + 1) for _ in range(d)))
+
+        s = tuple(random.randint(1, array_max_size*2) for _ in range(d))
+
+        shift = random.choice(("all", "none", randomAxes(arr.ndim - 1)))
+
+        order = random.choice(('C', 'F'))
+
+        I = identityOp(reduce(mul, s))
+        J = operators.ifftwrap(I, arr.shape, s, shift, order)
+
+        pyop.adjointTest(J)
