@@ -11,4 +11,6 @@ from .vectorized import convolve
 from .fft import (
         fft,
         ifft,
+        fftshift,
+        ifftshift
     )

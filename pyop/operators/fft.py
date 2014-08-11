@@ -192,3 +192,150 @@ def ifft(shape, s = None, order = 'C'):
             -2.05391260e-15])
     '''
     return __fft(np.fft.ifftn, np.fft.fftn, shape, s, order)
+
+
+################
+#  FFT Shifts  #
+################
+
+def __fftshift(f, shape, axes, order):
+    ''' f is which shift to perform (fftshift, ifftshift) '''
+
+    for d in shape:
+        if d < 0:
+            raise ValueError("shape must be positive. {}".format(shape))
+
+    if axes is not None:
+        for a in axes:
+            if a < 0:
+                raise ValueError("axes must be positive. {}".format(axes))
+
+            if a >= len(shape):
+                raise ValueError("Out of bound axes. {}".format(axes))
+
+
+    domain = reduce(mul, shape)
+
+    @matvectorized(shape, order)
+    def forward(x):
+        return f(x, axes = axes)
+
+    return LinearOperator((domain, domain), forward, forward)
+
+
+def fftshift(shape, axes = None, order = 'C'):
+    ''' Shift the zero frequency to the center.
+
+    Flips the axes in an input to move the zero frequency. By default, all
+    of the axes are flipped, moving the DC component to the center of the
+    array. However, this can be modified by altering the axes input.
+
+    This operator is self adjoint. This means that it will likely be used
+    with the ifftshift to sandwich an operator, such as `ifftshift *
+    operator * fftshift`.
+
+    Parameters
+    ----------
+    shape : tuple
+        The shape of the array to perform an FFT on.
+    axes : int or shape tuple, optional
+        Axes to shift. The None default shifts all axes. Axes can be
+        specified more than once and they will be flipped multiple times.
+    order = {'C', 'F'}, optional
+        The order by which the vectorized image is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator performing the fftshift.
+
+    See Also
+    --------
+    fft : LinearOperator version of fftn, use if setting the s parameter
+        for the fft is required.
+    ifft : LinearOperator version of ifftn, use if setting the s parameter
+        for the ifft is required.
+    ifftshift : LinearOperator version of ifftshift
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop.operators import fft, fftshift
+    >>> a = np.array([0, 1, 2, 3, 2, 1, 0])
+    >>> F = fft(a.shape)
+    >>> F(a)
+    array([ 9.00000000+0.j        , -4.54891734-2.19064313j,
+            0.19202147+0.24078731j, -0.14310413-0.62698017j,
+           -0.14310413+0.62698017j,  0.19202147-0.24078731j,
+           -4.54891734+2.19064313j])
+    >>> S = fftshift(a.shape)
+    >>> (S*F)(a)
+    array([-0.14310413+0.62698017j,  0.19202147-0.24078731j,
+           -4.54891734+2.19064313j,  9.00000000+0.j        ,
+           -4.54891734-2.19064313j,  0.19202147+0.24078731j,
+           -0.14310413-0.62698017j])
+    '''
+    return __fftshift(np.fft.fftshift, shape, axes, order)
+
+
+def ifftshift(shape, axes = None, order = 'C'):
+    ''' Shift the zero frequency to the center.
+
+    Flips the axes in an input to move the zero frequency. By default, all
+    of the axes are flipped, moving the DC component to the center of the
+    array. However, this can be modified by altering the axes input.
+
+    This operator is self adjoint. This means that it will likely be used
+    with the ifftshift to sandwich an operator, such as `fftshift *
+    operator * ifftshift`.
+
+    Parameters
+    ----------
+    shape : tuple
+        The shape of the array to perform an FFT on.
+    axes : int or shape tuple, optional
+        Axes to shift. The None default shifts all axes. Axes can be
+        specified more than once and they will be flipped multiple times.
+    order = {'C', 'F'}, optional
+        The order by which the vectorized image is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator performing the fftshift.
+
+    See Also
+    --------
+    fft : LinearOperator version of fftn, use if setting the s parameter
+        for the fft is required.
+    ifft : LinearOperator version of ifftn, use if setting the s parameter
+        for the ifft is required.
+    fftshift : LinearOperator version of fftshift
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop.operators import ifft, ifftshift
+    >>> a = np.array([0, 1, 2, 3, 2, 1, 0])
+    >>> F = ifft(a.shape)
+    >>> F(a)
+    array([ 1.28571429+0.j        , -0.64984533+0.31294902j,
+            0.02743164-0.03439819j, -0.02044345+0.0895686j ,
+           -0.02044345-0.0895686j ,  0.02743164+0.03439819j,
+           -0.64984533-0.31294902j])
+    >>> S = ifftshift(a.shape)
+    >>> (S*F)(a)
+    array([-0.02044345+0.0895686j , -0.02044345-0.0895686j ,
+            0.02743164+0.03439819j, -0.64984533-0.31294902j,
+            1.28571429+0.j        , -0.64984533+0.31294902j,
+            0.02743164-0.03439819j])
+    '''
+    return __fftshift(np.fft.ifftshift, shape, axes, order)
