@@ -97,7 +97,7 @@ def testConvolutionRandom():
         image = np.random.rand(*tuple(
             random.randint(1, image_max_size + 1) for _ in range(d)))
 
-        order = ('C', 'F', 'A')[random.randint(0, 2)]
+        order = random.choice(('C', 'F', 'A'))
 
         C = operators.convolve(kernel, image.shape, order)
         adjointTest(C)
