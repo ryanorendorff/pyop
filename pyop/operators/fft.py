@@ -107,6 +107,8 @@ def fft(shape, s = None, order = 'C'):
         for the ifft is required.
     fftshift : LinearOperator version of fftshift
     ifftshift : LinearOperator version of ifftshift
+    fftwrap : Wraps an operator in an FFT, and then undoes the FFT.
+    ifftwrap : Wraps an operator in an IFFT, and then undoes the IFFT.
 
     Examples
     --------
@@ -174,6 +176,8 @@ def ifft(shape, s = None, order = 'C'):
         for the fft is required.
     fftshift : LinearOperator version of fftshift
     ifftshift : LinearOperator version of ifftshift
+    fftwrap : Wraps an operator in an FFT, and then undoes the FFT.
+    ifftwrap : Wraps an operator in an IFFT, and then undoes the IFFT.
 
     Examples
     --------
@@ -260,6 +264,8 @@ def fftshift(shape, axes = None, order = 'C'):
     ifft : LinearOperator version of ifftn, use if setting the s parameter
         for the ifft is required.
     ifftshift : LinearOperator version of ifftshift
+    fftwrap : Wraps an operator in an FFT, and then undoes the FFT.
+    ifftwrap : Wraps an operator in an IFFT, and then undoes the IFFT.
 
     Examples
     --------
@@ -319,6 +325,8 @@ def ifftshift(shape, axes = None, order = 'C'):
     ifft : LinearOperator version of ifftn, use if setting the s parameter
         for the ifft is required.
     fftshift : LinearOperator version of fftshift
+    fftwrap : Wraps an operator in an FFT, and then undoes the FFT.
+    ifftwrap : Wraps an operator in an IFFT, and then undoes the IFFT.
 
     Examples
     --------
