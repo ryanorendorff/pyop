@@ -339,3 +339,176 @@ def ifftshift(shape, axes = None, order = 'C'):
             0.02743164-0.03439819j])
     '''
     return __fftshift(np.fft.ifftshift, shape, axes, order)
+
+
+##################################
+#  Composition Helper Functions  #
+##################################
+
+def __fftwrap(fft_func, O, shape, s, shift, order):
+
+    if fft_func is fft:
+        shift_func = fftshift
+        shift_dual = ifftshift
+
+    if fft_func is ifft:
+        shift_func = ifftshift
+        shift_dual = fftshift
+
+    if shift is "all":
+        shift = None
+
+    F = fft_func(shape, s, order)
+
+
+    if shift is "none":
+        return F.T * O * F
+    else:
+        S = shift_func(s, shift, order)
+        Sinv = shift_dual(s, shift, order)
+
+        return F.T * Sinv * O * S * F
+
+
+def fftwrap(O, shape, s = None, shift = 'none', order = 'C'):
+    ''' Surrounds an operator with FFT operations.
+
+    Given an operator O, this function returns the following in the case of
+    no shift (shift = 'none'),
+
+    ..math:: F^T * O * F
+
+    and the following when shift is any other value.
+
+    ..math:: F^T * Sinv * O * S * F
+
+    where
+
+    - :math:`F` is the FFT operation
+    - :math:`S` is a FFT shift
+    - :math:`Sinv` is an IFFT shift
+
+    Parameters
+    ----------
+    O : LinearOperator
+        The operator to wrap.
+    shape : tuple
+        The shape of the array to perform an FFT on.
+    s : sequence of ints, optional
+        Length of each axis in the input. Must be the same number of
+        elements as shape. If the length for a dimension is shorter the
+        shape value, then the input is cropped. If the dimension is longer,
+        it is padded with zeros. If s is not given (the default), then s =
+        shape (no cropping or padding).
+    shift : "none", "all" or shape tuple
+        The axes to shift. If "none", no FFT shift is performed. If "all",
+        every axis is shifted to so the DC value is in the center of the
+        array. Otherwise shift takes a tuple input that shifts only the
+        specified axes. Duplicates are allowed, this causes the axes to be
+        flipped multiple times.
+    order = {'C', 'F'}, optional
+        The order by which the vectorized image is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator that performs some action in FFT/x-space domain.
+
+    See Also
+    --------
+    fft : LinearOperator version of fftn, use if setting the s parameter
+        for the fft is required.
+    ifft : LinearOperator version of ifftn, use if setting the s parameter
+        for the ifft is required.
+    fftshift : LinearOperator version of fftshift
+    ifftshift : LinearOperator version of ifftshift
+    ifftwrap : The same as fftshift but starts with an IFFT.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop.operators import fftwrap
+    >>> from pyop import LinearOperator
+    >>> a = np.array([1, 1, 1, 1])
+    >>> I = LinearOperator((4, 4), lambda x: x, lambda x: x)
+    >>> F = fftwrap(I, (4,))
+    >>> F(a)
+    array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])
+    '''
+    return __fftwrap(fft, O, shape, s, shift, order)
+
+
+def ifftwrap(O, shape, s = None, shift = 'none', order = 'C'):
+    ''' Surrounds an operator with IFFT operations.
+
+    Given an operator O, this function returns the following in the case of
+    no shift (shift = 'none'),
+
+    ..math:: F^T * O * F
+
+    and the following when shift is any other value.
+
+    ..math:: F^T * Sinv * O * S * F
+
+    where
+
+    - :math:`F` is the IFFT operation
+    - :math:`S` is an IFFT shift
+    - :math:`Sinv` is a FFT shift
+
+    Parameters
+    ----------
+    O : LinearOperator
+        The operator to wrap.
+    shape : tuple
+        The shape of the array to perform an FFT on.
+    s : sequence of ints, optional
+        Length of each axis in the input. Must be the same number of
+        elements as shape. If the length for a dimension is shorter the
+        shape value, then the input is cropped. If the dimension is longer,
+        it is padded with zeros. If s is not given (the default), then s =
+        shape (no cropping or padding).
+    shift : "none", "all" or shape tuple
+        The axes to shift. If "none", no FFT shift is performed. If "all",
+        every axis is shifted to so the DC value is in the center of the
+        array. Otherwise shift takes a tuple input that shifts only the
+        specified axes. Duplicates are allowed, this causes the axes to be
+        flipped multiple times.
+    order = {'C', 'F'}, optional
+        The order by which the vectorized image is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator that performs some action in FFT/x-space domain.
+
+    See Also
+    --------
+    fft : LinearOperator version of fftn, use if setting the s parameter
+        for the fft is required.
+    ifft : LinearOperator version of ifftn, use if setting the s parameter
+        for the ifft is required.
+    fftshift : LinearOperator version of fftshift
+    ifftshift : LinearOperator version of ifftshift
+    fftwrap : The same as fftshift but starts with an FFT.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop.operators import ifftwrap
+    >>> from pyop import LinearOperator
+    >>> a = np.array([1, 1, 1, 1])
+    >>> I = LinearOperator((4, 4), lambda x: x, lambda x: x)
+    >>> F = ifftwrap(I, (4,))
+    >>> F(a)
+    array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])
+    '''
+    return __fftwrap(ifft, O, shape, s, shift, order)

@@ -12,5 +12,7 @@ from .fft import (
         fft,
         ifft,
         fftshift,
-        ifftshift
+        ifftshift,
+        fftwrap,
+        ifftwrap
     )
