@@ -161,8 +161,8 @@ def horzcat(horz_blocks):
     rows = horz_blocks[0].shape[0]
     cols = sum(h.shape[1] for h in horz_blocks)
     if not all(b.shape[0] == rows for b in horz_blocks):
-        raise ValueError('''Block operator horizontal concatenation failed:
-                         row mismatch.''')
+        raise ValueError('Block operator horizontal concatenation failed: ' +
+                         'row mismatch.')
 
     return LinearOperator((rows, cols),
             __hstack(horz_blocks),
@@ -192,8 +192,8 @@ def vertcat(vert_blocks):
     rows = sum(v.shape[0] for v in vert_blocks)
     cols = vert_blocks[0].shape[1]
     if not all(b.shape[1] == cols for b in vert_blocks):
-        raise ValueError('''Block operator vertical concatenation failed:
-                          column mismatch.''')
+        raise ValueError('Block operator vertical concatenation failed: ' +
+                         'column mismatch.')
 
     return LinearOperator((rows, cols),
             __vstack(vert_blocks),
