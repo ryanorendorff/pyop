@@ -1,4 +1,5 @@
 from numpy import vsplit, vstack, tile, concatenate, cumsum, add
+from numpy import vstack as npvstack
 from pyop import LinearOperator, matmat
 
 import six
@@ -24,9 +25,9 @@ def bmat(blocks):
         raise ValueError('Empty list supplied to block operator.')
 
     ## First collapse the rows using horz_cat.
-    vert_block_op = [horzcat(row) for row in blocks]
+    vert_block_op = [hstack(row) for row in blocks]
     ## Next collapse the column into one block operator using vert_cat.
-    block_op = vertcat(vert_block_op)
+    block_op = vstack(vert_block_op)
 
     return block_op
 
@@ -72,7 +73,7 @@ def blockDiag(blocks):
             vec_components))
 
         ## Concatenate the output sub-vectors together.
-        return vstack(sub_outvecs)
+        return npvstack(sub_outvecs)
 
 
     @matmat
@@ -88,7 +89,7 @@ def blockDiag(blocks):
             vec_components))
 
         ## Concatenate the output sub-vectors together.
-        return vstack(sub_outvecs)
+        return npvstack(sub_outvecs)
 
 
     return LinearOperator((rows, cols),
@@ -96,7 +97,7 @@ def blockDiag(blocks):
             adjointFunction)
 
 
-def __hstack(horz_blocks):
+def __horzcat(horz_blocks):
     ''' Converts list of horizontal operators into one linear operator.'''
 
     ## Generate a list containing the indices to split the vector x
@@ -122,7 +123,7 @@ def __hstack(horz_blocks):
     return opFunction
 
 
-def __vstack(vert_blocks):
+def __vertcat(vert_blocks):
     ''' Converts list of vertical operators into one operator.'''
 
     @matmat
@@ -132,13 +133,13 @@ def __vstack(vert_blocks):
         ## get output vector sub-components.
         sub_outvecs = (b(x) for b in vert_blocks)
         ## Concatenate the output sub-vectors together.
-        return vstack(sub_outvecs)
+        return npvstack(sub_outvecs)
 
 
     return opFunction
 
 
-def horzcat(horz_blocks):
+def hstack(horz_blocks):
     ''' Converts list of operators into one operator.
 
     The new operator is created assuming the list corresponds to a row of
@@ -165,11 +166,11 @@ def horzcat(horz_blocks):
                          'row mismatch.')
 
     return LinearOperator((rows, cols),
-            __hstack(horz_blocks),
-            __vstack([h.T for h in horz_blocks]))
+            __horzcat(horz_blocks),
+            __vertcat([h.T for h in horz_blocks]))
 
 
-def vertcat(vert_blocks):
+def vstack(vert_blocks):
     ''' Converts list of operators into one operator.
 
     The new operator is created assuming the list corresponds to a column of
@@ -196,5 +197,5 @@ def vertcat(vert_blocks):
                          'column mismatch.')
 
     return LinearOperator((rows, cols),
-            __vstack(vert_blocks),
-            __hstack([v.T for v in vert_blocks]))
+            __vertcat(vert_blocks),
+            __horzcat([v.T for v in vert_blocks]))
