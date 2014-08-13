@@ -6,22 +6,19 @@ defining the operation and a function (called the forward function) that
 operators on only one input. However, certain operators are practically
 useless. ::
 
-  A = LinearOperator((4, 4), lambda x: array([0, 0, 0, 0])
-  A(array([1, 1, 1, 1])) # is not the correct answer.
+  A = LinearOperator((4, 4), lambda x: array([0, 2, 0, 0])
+  A(array([1, 1, 1, 1])) # The result is probably not what you wanted.
 
-There is unfortunately no way to determine if a given forward function
-is the correct operator or that the input is correct type (this is
-an problem of no type system in Python). This is not to say that
-:class:`~pyop.linop.LinearOperator` does not perform any checking; upon the
-application of a :class:`~pyop.linop.LinearOperator`, the ``call`` method
-will check that
+While the :class:`~pyop.linop.LinearOperator` cannot automatically determine
+non-linear or bogus forward functions (or at least not easily), it does
+perform the following checks when the ``call`` method is used.
 
 - both the operator and the input have a shape attribute,
 - the inner dimensions of the operator and the input match, and
 - the return of the forward function matches the expected dimensions
   (the outer dimensions).
 
-Therefore, it is impossible to use the following operators due to the checks
+Therefore, it is impossible to use the following operators due to the checks.
  ::
 
   LinearOperator((4, 4), lambda x: "Hinc lucem et pocula sacra.")
@@ -62,7 +59,7 @@ The Rules
    test can easily pass without defining the correct operator).
 4. Forward and adjoint functions that are defined on NumPy arrays should
    respect the dimensionality of their input. This means that 1D inputs
-   should result in 1D outputs, and 2D outputs should lead to 2D outputs.
+   should result in 1D outputs, and 2D inputs should lead to 2D outputs.
    This follows the way that many NumPy functions are styled.
 5. Forward and adjoint functions should be defined to work on 2D array inputs
    when the inputs are NumPy arrays. This is to say that the functions
@@ -136,4 +133,5 @@ a determined programmer can always redefine the functions held by a
 at runtime. However, in the course of normal programming, they can be
 treated as a non-hashable immutable (I realise the silliness) as all of the
 composition rules create new operators containing the old ones. This means
-that if an operator is given to a function, the function has likely
+that if an operator is given to a function, it will not change after the
+function executes.
