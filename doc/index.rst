@@ -34,8 +34,8 @@ The following tutorials walk through these conditions and an example of
 creating an operator.
 
 .. toctree::
-  tutorial/rules
   tutorial/linop
+  tutorial/rules
   tutorial/block
 
 
