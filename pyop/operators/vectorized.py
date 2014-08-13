@@ -55,6 +55,12 @@ def convolve(kernel, shape, order = "C"):
     ValueError
         When the inputs are not the same dimension.
 
+    See Also
+    --------
+    scipy.signal.convolve : The array based version of this operation.
+    :func:`.fft` : LinearOperator version of fftn.
+    :func:`.ifft` : LinearOperator version of ifftn.
+
     Examples
     --------
     >>> import numpy as np
@@ -68,10 +74,6 @@ def convolve(kernel, shape, order = "C"):
     array([[-1., -1., -1.],
            [-4., -1., -1.],
            [-7., -1., -1.]])
-
-    See Also
-    --------
-    scipy.signal.convolve : The array based version of this operation.
     '''
     if not kernel.ndim == len(shape):
         raise ValueError("kernel and shape must have "
