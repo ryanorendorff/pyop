@@ -54,4 +54,6 @@ Prefined Operators
 ------------------
 
 .. toctree::
-    pyop.operators
+    operators/matrix
+    operators/vectorized
+    operators/fft
