@@ -16,7 +16,7 @@ from pyop import matvectorized, LinearOperator
 #  FFTs  #
 ##########
 
-def __fft(f, dual, shape, s, order):
+def __fourier(f, dual, shape, s, order):
     ''' f  is which fft function to use (fft, ifft), dual is the
     dual to it. '''
 
@@ -126,7 +126,7 @@ def fft(shape, s = None, order = 'C'):
              3.00000000e+00,   2.00000000e+00,   1.00000000e+00,
             -1.90323947e-15])
     '''
-    return __fft(np.fft.fftn, np.fft.ifftn, shape, s, order)
+    return __fourier(np.fft.fftn, np.fft.ifftn, shape, s, order)
 
 
 def ifft(shape, s = None, order = 'C'):
@@ -195,14 +195,14 @@ def ifft(shape, s = None, order = 'C'):
              3.00000000e+00,   2.00000000e+00,   1.00000000e+00,
             -2.05391260e-15])
     '''
-    return __fft(np.fft.ifftn, np.fft.fftn, shape, s, order)
+    return __fourier(np.fft.ifftn, np.fft.fftn, shape, s, order)
 
 
 ################
 #  FFT Shifts  #
 ################
 
-def __fftshift(f, shape, axes, order):
+def __fouriershift(f, shape, axes, order):
     ''' f is which shift to perform (fftshift, ifftshift) '''
 
     for d in shape:
@@ -285,7 +285,7 @@ def fftshift(shape, axes = None, order = 'C'):
            -4.54891734-2.19064313j,  0.19202147+0.24078731j,
            -0.14310413-0.62698017j])
     '''
-    return __fftshift(np.fft.fftshift, shape, axes, order)
+    return __fouriershift(np.fft.fftshift, shape, axes, order)
 
 
 def ifftshift(shape, axes = None, order = 'C'):
@@ -346,14 +346,14 @@ def ifftshift(shape, axes = None, order = 'C'):
             1.28571429+0.j        , -0.64984533+0.31294902j,
             0.02743164-0.03439819j])
     '''
-    return __fftshift(np.fft.ifftshift, shape, axes, order)
+    return __fouriershift(np.fft.ifftshift, shape, axes, order)
 
 
 ##################################
 #  Composition Helper Functions  #
 ##################################
 
-def __fftwrap(fft_func, O, shape, s, shift, order):
+def __fourierwrap(fft_func, O, shape, s, shift, order):
 
     if fft_func is fft:
         shift_func = fftshift
@@ -447,7 +447,7 @@ def fftwrap(O, shape, s = None, shift = 'none', order = 'C'):
     >>> F(a)
     array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])
     '''
-    return __fftwrap(fft, O, shape, s, shift, order)
+    return __fourierwrap(fft, O, shape, s, shift, order)
 
 
 def ifftwrap(O, shape, s = None, shift = 'none', order = 'C'):
@@ -519,4 +519,4 @@ def ifftwrap(O, shape, s = None, shift = 'none', order = 'C'):
     >>> F(a)
     array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])
     '''
-    return __fftwrap(ifft, O, shape, s, shift, order)
+    return __fourierwrap(ifft, O, shape, s, shift, order)
