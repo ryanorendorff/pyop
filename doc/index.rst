@@ -36,7 +36,7 @@ creating an operator.
 .. toctree::
   tutorial/linop
   tutorial/rules
-  tutorial/block
+  tutorial/motivation
 
 
 Tools for Creating Linear Operators

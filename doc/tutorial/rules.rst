@@ -27,8 +27,7 @@ Therefore, it is impossible to use the following operators due to the checks.
 
 Similarly, the following will be rejected because only positive pair shapes
 make sense, as they define a mapping from one finite dimension (the domain)
-to another (the codomain).
- ::
+to another (the codomain). ::
 
   LinearOperator((4, 0), lambda x: x)
   LinearOperator((4, -1), lambda x: x)
