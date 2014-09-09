@@ -6,7 +6,7 @@ from .matrix_operators import (
         , diag
     )
 
-from .convolution import convolve
+from .convolution import convolve, gradient
 
 from .fft import (
         fft,

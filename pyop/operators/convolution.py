@@ -1,3 +1,4 @@
+import numpy as np
 import scipy.signal as signal
 from scipy.misc import central_diff_weights
 
@@ -118,3 +119,74 @@ def convolve(kernel, shape, order = "C"):
     return LinearOperator(op_shape,
         mv(partial(convSame, kernel = kernel, slc = f_slice)),
         mv(partial(convSame, kernel = adjoint_kernel, slc = a_slice)))
+
+
+def gradient(derivative, points, shape, step=None, order = "C"):
+    ''' Approximate the derivative with a central difference.
+
+    Parameters
+    ----------
+    derivative : int
+        The order of the derivative to approximate.
+
+    points : int
+        The number of points in the central difference. Must be an odd
+        integer greater than `derivative`.
+
+    shape : tuple
+        The shape of the array in non-vector form.
+
+    step: tuple, optional
+        The step sizes between adjacent values along each dimension in the
+        array. Passing None defaults to step size 1.0 along all dimensions.
+
+    order = {'C', 'F', 'A'}, optional
+        The order by which the vectorized array is reshaped. This is the
+        same parameter as given to functions like numpy.reshape. For a
+        discussion of the memory efficiency of different orders and how that
+        is determined by the underlying format, see the documentation of
+        commands that take an order argument.
+
+    Returns
+    -------
+    LinearOperator
+        A LinearOperator implementing the central difference on vectorized
+        inputs.
+
+    Raises
+    ------
+    ValueError
+        When the inputs are not the right dimensions.
+
+    See Also
+    --------
+    convolve : The central difference is calculated using this LinearOperator.
+    scipy.misc.central_diff_weights : The scipy function returning the
+        required weights for calculating the central difference.
+    '''
+    # it stops being useful at all at this point
+    if any(s < points for s in shape):
+        raise ValueError("Shape's dims must have at least as many "
+                         "points as central difference weights.")
+
+    if step is None:
+        step = (1.0, ) * len(shape)
+    elif len(step) != len(shape):
+        raise ValueError("Shape and step must have same ndims (length).")
+
+    step = enumerate(s ** derivative for s in step)
+
+    # reverses the order of the weights to compensate for convolution's
+    # "flipped" shift
+    weights = central_diff_weights(points, derivative)[::-1]
+
+    # create a kernel with ndim specified by shape, each of length points
+    kernel = np.zeros((points, ) * len(shape))
+    # slice that gets the center values along first dimension
+    slc = (slice(None), ) + (points // 2, ) * (kernel.ndim - 1)
+
+    # fill in kernel along the center of each dimension
+    for dim, s in step:
+        kernel[slc[-dim:] + slc[:-dim]] += weights / s
+
+    return convolve(kernel, shape, order)
