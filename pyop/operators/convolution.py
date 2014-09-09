@@ -1,4 +1,5 @@
 import scipy.signal as signal
+from scipy.misc import central_diff_weights
 
 from functools import reduce, partial
 from operator import mul

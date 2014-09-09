@@ -8,6 +8,7 @@ import numpy as np
 
 from numpy import linspace, reshape, array, zeros, ravel
 import scipy.signal as signal
+from scipy.misc import derivative
 
 num_tests = 25
 
@@ -88,7 +89,7 @@ def testConvolutionRandom():
     image_max_size = 5
     dimensions_max = 4
 
-    for _ in range(num_tests):
+    for _ in range(num_testspass):
         d = random.randint(1, dimensions_max + 1)
 
         kernel = np.random.rand(*tuple(
