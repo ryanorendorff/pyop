@@ -11,10 +11,10 @@ num_tests = 250
 max_matrix_size = 10
 
 ############
-#  horzcat #
+#  hstack  #
 ############
 
-def testHorzcatFunction():
+def testHstackFunction():
     for _ in range(num_tests):
         rows = random.randint(1, max_matrix_size)
         randcols = lambda: random.randint(1, max_matrix_size)
@@ -32,16 +32,16 @@ def testHorzcatFunction():
         horz_blocks_op = [A_op, B_op, C_op]
 
         D_mat = np.hstack(horz_blocks_mat)
-        D_op = pyop.horzcat(horz_blocks_op)
+        D_op = pyop.hstack(horz_blocks_op)
 
         operatorVersusMatrix(D_mat, D_op)
 
 
 ############
-#  vertcat #
+#  vstack  #
 ############
 
-def testVertcatFunction():
+def testVstackFunction():
     for _ in range(num_tests):
         randrows = lambda: random.randint(1, max_matrix_size)
         cols = random.randint(1, max_matrix_size)
@@ -59,7 +59,7 @@ def testVertcatFunction():
         vert_blocks_op = [A_op, B_op, C_op]
 
         D_mat = np.vstack(vert_blocks_mat)
-        D_op = pyop.vertcat(vert_blocks_op)
+        D_op = pyop.vstack(vert_blocks_op)
 
         operatorVersusMatrix(D_mat, D_op)
 

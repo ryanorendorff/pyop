@@ -1,3 +1,34 @@
+'''
+There is only one class for creating a Linear Operator. Its constructor
+takes in the shape of the operator if it were a matrix (or equivalently the
+dimensions of the input and output of the function) and a forward function.
+An adjoint function is not defined by default, but they are required for
+many algorithms.
+
+To test if a ``LinearOperator`` is correctly implemented (that the
+adjoint and forward functions are correct), it is helpful to use the
+:func:`.adjointTest` and :func:`.toMatrix` functions defined
+in PyOp.
+
+The following operators are defined on Linear Operators ``A`` and
+``B``.
+
+- ``+A``, ``-A``
+- ``2*A``, ``A*2``
+- ``A**2``
+- ``A + B``, ``A - B``, ``A * B``
+- ``A == B``, ``A != B``
+
+The following are all valid ways to call/apply the operator on an input
+``x``.
+
+- ``A(x)``
+- ``A.dot(x)``
+- ``A*x``
+
+``LinearOperators`` also define the string method, and can be directly
+used with ``str``.
+'''
 from pyop.error import (
         AllDimensionMismatch, InnerDimensionMismatch, MissingAdjoint,
         DimensionMismatch, ZeroDimension, HighOrderTensor
@@ -13,10 +44,7 @@ from numbers import Number
 
 ## Uses NumPy style docstrings: http://goo.gl/xd873p
 class LinearOperator(object):
-    ''' LinearOperators for performing linear transformations without
-    matrices.
-
-    To use a matrix in this class, provide a function
+    ''' LinearOperators for performing transformations without matrices.
 
     Parameters
     ----------
@@ -30,7 +58,7 @@ class LinearOperator(object):
 
     Attributes
     ----------
-    shape : (int, int)
+    shape : int, int
         a pair representing the rows/columns of this transformation, if it
         were in matrix form.
     T : LinearOperator
@@ -173,6 +201,19 @@ class LinearOperator(object):
 
 
     def dot(self, other):
+        ''' Performs the application of a LinearOperator to an input.
+
+        For a ``LinearOperator`` ``A``, the following are the same::
+
+            A(x)
+            A.dot(x)
+
+        The reason for having two calling conventions is that ``arrays``
+        have the ``dot`` function, but not ``__call__`` (or at least not
+        with the same intentions). Having ``dot`` allows for functions to be
+        written that are agnostic to their input, such that the input could
+        be either a ``LinearOperator`` or an ``array``.
+        '''
         return self*other
 
 

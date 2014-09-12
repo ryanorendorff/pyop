@@ -1,3 +1,11 @@
+'''
+Often, certain forward and adjoint functions are simpler to define as a
+matrix-matrix multiplication or to operate on a reshape version of the
+input. The decorators defined here allow for functions of these forms to be
+modified to matrix-matrix functions easily. The examples for each decorator
+give a good sample of how to use such functions.
+'''
+
 import numpy as np
 import scipy.sparse
 
@@ -16,9 +24,8 @@ def matmat(f):
     ''' Convert 1D array to 2D column and back to 1D after calculation.
 
     This function is meant to work only with functions following the
-    :class:`.LinearOperator` calling declaration, where the first argument
-    is the operator's size (commonly op_shape) and the second is the piece
-    of data to work on (commonly x).
+    :class:`.LinearOperator` calling declaration, which is a function taking
+    in only one argument, the data to work on.
 
     If the function receives a sparse input, then this wrapper does nothing
     since a sparse matrix cannot be squeeze or reshaped without significant
@@ -26,15 +33,15 @@ def matmat(f):
 
     Parameters
     ----------
-    f : function with arguments (x)
-        The function to ensure that the data input (x) is at least 2
+    f : function
+        The function that is programmed to operate on arrays of two
         dimensions.
 
     Returns
     -------
     function
         A function that ensures the input data is at least 2 dimensional and
-        that the result is a 1D array, in the case of a dense input.
+        that the result is a 1D array if the input was also 1D.
 
     See Also
     --------

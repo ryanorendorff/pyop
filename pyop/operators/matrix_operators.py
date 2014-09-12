@@ -1,21 +1,65 @@
+"""
+The operators specified in this module act like their matrix equivalent,
+and attempt to match tbe basic building blocks in NumPy and other numerical
+packages.
+"""
 import numpy as np
 
 from functools import partial
 
 from pyop import LinearOperator, matmat
 
+from scipy.misc import doccer
+
+
+docdict = {
+    'shape' :
+"""shape : pair
+    The shape of the LinearOperator (if it were a matrix).""",
+
+    ## The see also section.
+    'zeros' : "zeros : Matrix free version of the zeros matrix.",
+    'ones' : "ones : Matrix free version of the ones matrix.",
+    'eye' : "eye : Matrix free version of the eye matrix.",
+    'diag' : "diag : Convert a 1D array to matrix free diagonal matrix.",
+    'select' : "select : Select certain rows out of a matrix."
+    }
+
+docfill = doccer.filldoc(docdict)
+
+@docfill
 def zeros(shape):
     ''' PyOp version of zeros array function (only 2D).
 
+    Returns a new LinearOperator that emulates a matrix filled with zeros.
+
     Parameters
     ----------
-    shape : pair
-        The shape of the LinearOperator (if it were a matrix).
+    %(shape)s
 
     Returns
     -------
     LinearOperator
         A functional version of numpy.zeros()
+
+    See Also
+    --------
+    %(ones)s
+    %(eye)s
+    %(diag)s
+    %(select)s
+
+    Examples
+    --------
+    >>> from pyop.operators import zeros
+    >>> from pyop import toMatrix
+    >>> toMatrix(zeros((2, 1)))
+    array([[ 0.],
+           [ 0.]])
+    >>> s = (2,2)
+    >>> toMatrix(zeros(s))
+    array([[ 0.,  0.],
+           [ 0.,  0.]])
     '''
 
     def zeroInput(x, op_shape):
@@ -26,18 +70,39 @@ def zeros(shape):
             matmat(partial(zeroInput, op_shape = shape[1])))
 
 
+@docfill
 def ones(shape):
     ''' PyOp version of ones array function (only 2D).
 
+    Returns a new LinearOperator that emulates a matrix filled with ones.
+
     Parameters
     ----------
-    shape : pair
-        The shape of the LinearOperator (if it were a matrix).
+    %(shape)s
 
     Returns
     -------
     LinearOperator
         A functional version of numpy.ones()
+
+    See Also
+    --------
+    %(zeros)s
+    %(eye)s
+    %(diag)s
+    %(select)s
+
+    Examples
+    --------
+    >>> from pyop.operators import ones
+    >>> from pyop import toMatrix
+    >>> toMatrix(ones((2, 1)))
+    array([[ 1.],
+           [ 1.]])
+    >>> s = (2,2)
+    >>> toMatrix(ones(s))
+    array([[ 1.,  1.],
+           [ 1.,  1.]])
     '''
 
     def sumColumns(x, op_shape):
@@ -50,18 +115,39 @@ def ones(shape):
 
 
 
+@docfill
 def eye(shape):
     ''' PyOp version of eye array function (only 2D).
 
+    Returns a new LinearOperator that emulates the identity matrix.
+
     Parameters
     ----------
-    shape : pair
-        The shape of the LinearOperator (if it were a matrix).
+    %(shape)s
 
     Returns
     -------
     LinearOperator
         A functional version of numpy.eye()
+
+    See Also
+    --------
+    %(zeros)s
+    %(ones)s
+    %(diag)s
+    %(select)s
+
+    Examples
+    --------
+    >>> from pyop.operators import eye
+    >>> from pyop import toMatrix
+    >>> toMatrix(eye((2, 1)))
+    array([[ 1.],
+           [ 0.]])
+    >>> s = (2,2)
+    >>> toMatrix(eye(s))
+    array([[ 1.,  0.],
+           [ 0.,  1.]])
     '''
     def identity(x, op_shape):
         m, n = op_shape
@@ -77,6 +163,7 @@ def eye(shape):
             matmat(partial(identity, op_shape = shape[::-1])))
 
 
+@docfill
 def select(rows, perm):
     ''' Select only certain rows of a matrix.
 
@@ -90,7 +177,7 @@ def select(rows, perm):
     Parameters
     ----------
     rows : integer
-        The number of total rows selecting from.
+        The number of total rows to be selected from.
     perm : list
         A list of the rows to take. This will define the shape of the
         resulting LinearOperator.
@@ -99,6 +186,24 @@ def select(rows, perm):
     -------
     LinearOperator
         A LinearOperator that performs the selection on np.array inputs.
+
+    See Also
+    --------
+    %(zeros)s
+    %(ones)s
+    %(eye)s
+    %(diag)s
+
+    Examples
+    --------
+    >>> from pyop.operators import select
+    >>> import numpy as np
+    >>> S = select(4, [0, 1, 3])
+    >>> S(np.array([1, 2, 3, 4]))
+    array([1, 2, 4])
+    >>> S = select(4, [0, 1, 1])
+    >>> S(np.array([1, 2, 3, 4]))
+    array([1, 2, 2])
     '''
 
     @matmat
@@ -117,6 +222,7 @@ def select(rows, perm):
     return LinearOperator((len(perm), rows), subset, expand)
 
 
+@docfill
 def diag(v):
     ''' Create a LinearOperator that emulates a diagonal matrix.
 
@@ -133,6 +239,24 @@ def diag(v):
     -------
     LinearOperator
         A LinearOperator that scales np.array inputs.
+
+    See Also
+    --------
+    %(zeros)s
+    %(ones)s
+    %(eye)s
+    %(select)s
+
+    Examples
+    --------
+    >>> from pyop.operators import diag
+    >>> from pyop import toMatrix
+    >>> import numpy as np
+    >>> toMatrix(diag(np.array([1, 2, 3, 4])))
+    array([[ 1.,  0.,  0.,  0.],
+           [ 0.,  2.,  0.,  0.],
+           [ 0.,  0.,  3.,  0.],
+           [ 0.,  0.,  0.,  4.]])
     '''
 
     @matmat
