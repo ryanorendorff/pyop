@@ -35,9 +35,7 @@ reconstruction problem, we can then find the solution to the inverse problem
 to reconstruct an image:
 
 .. math::
-  \begin{align*}
-      \min_x ~~& \left \Vert Ax - y \right \Vert_2 \\
-  \end{align*}
+  \min_x ~~ \left \Vert Ax - y \right \Vert_2
 
 In general, this problem has an analytical solution given by:
 
@@ -48,10 +46,8 @@ where :math:`A^{\dagger}` is the Moore-Penrose inverse of `A`. For
 ill-conditioned problems, we may add Tikhonov regularization:
 
 .. math::
-  \begin{align*}
-      \min_x ~~& \left \Vert Ax - y \right \Vert_2 + \sqrt{\lambda} \left \Vert
-      x \right \Vert_2
-  \end{align*}
+  \min_x ~~ \left \Vert Ax - y \right \Vert_2 + \sqrt{\lambda} \left \Vert
+  x \right \Vert_2
 
 which has the analytical solution:
 
@@ -62,10 +58,8 @@ We may also want to incorporate *a priori* information such as positivity of
 the image `x` leading to a convex optimization formulation:
 
 .. math::
-  \begin{align*}
-      \min_x ~~& \left \Vert Ax - y \right \Vert_2^2 \\
-      \mathrm{s.t.} ~~& x \succeq 0
-  \end{align*}
+  \min_x ~~& \left \Vert Ax - y \right \Vert_2^2 \\
+  \mathrm{s.t.} ~~& x \succeq 0
 
 which has no analytical solution.
 
