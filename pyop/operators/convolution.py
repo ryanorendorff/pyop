@@ -22,7 +22,7 @@ def __flip(a):
     return a
 
 
-def convolve(kernel, shape, order = "C"):
+def convolve(kernel, shape, order='C'):
     ''' Convolve two N-dimensional arrays as a LinearOperator.
 
     Note that this only implements the "same" convolution mode seen in other
@@ -121,7 +121,7 @@ def convolve(kernel, shape, order = "C"):
         mv(partial(convSame, kernel = adjoint_kernel, slc = a_slice)))
 
 
-def gradient(derivative, points, shape, step=None, order = "C"):
+def gradient(derivative, points, shape, step=None, order='C'):
     ''' Approximate the derivative with a central difference.
 
     Parameters
@@ -163,6 +163,26 @@ def gradient(derivative, points, shape, step=None, order = "C"):
     convolve : The central difference is calculated using this LinearOperator.
     scipy.misc.central_diff_weights : The scipy function returning the
         required weights for calculating the central difference.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pyop.operators import gradient
+    >>> grad = gradient(1, 3, (5,6))
+    >>> laplace = gradient(2, 3, (5,6), step=(0.5,2))
+    >>> A = np.indices((5,6)).sum(0)**2 / 2.
+    >>> grad(np.ravel(A)).reshape(5,6)
+    array([[  0.5 ,   2.  ,   4.25,   7.  ,  10.25,   5.  ],
+           [  2.  ,   4.  ,   6.  ,   8.  ,  10.  ,  -0.25],
+           [  4.25,   6.  ,   8.  ,  10.  ,  12.  ,  -2.  ],
+           [  7.  ,   8.  ,  10.  ,  12.  ,  14.  ,  -4.25],
+           [  4.  ,   1.  ,  -0.25,  -2.  ,  -4.25, -32.  ]])
+    >>> laplace(np.ravel(A)).reshape(5,6)
+    array([[   2.125,    4.25 ,    2.25 ,   -3.75 ,  -13.75 ,  -32.25 ],
+           [   4.25 ,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -1.875],
+           [   4.125,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -3.75 ],
+           [   3.75 ,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -5.875],
+           [ -46.875,  -67.75 ,  -93.75 , -123.75 , -157.75 , -208.25 ]])
     '''
     # it stops being useful at all at this point
     if any(s < points for s in shape):
@@ -174,7 +194,7 @@ def gradient(derivative, points, shape, step=None, order = "C"):
     elif len(step) != len(shape):
         raise ValueError("Shape and step must have same ndims (length).")
 
-    step = enumerate(s ** derivative for s in step)
+    step = enumerate(float(s) ** derivative for s in step)
 
     # reverses the order of the weights to compensate for convolution's
     # "flipped" shift

@@ -23,7 +23,7 @@ class PyTest(TestCommand):
 
 
 def readme():
-    with open('README.pandoc') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup( name             = 'pyop'
