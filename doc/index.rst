@@ -54,6 +54,6 @@ Prefined Operators
 ------------------
 
 .. toctree::
-    operators/matrix
-    operators/vectorized
+    operators/matrix_operators
+    operators/convolution
     operators/fft
