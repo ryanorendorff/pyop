@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Converting LinearOperators &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Blocks" href="block.html" />
+    <link rel="prev" title="Convenient Decorators" href="utilities.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="block.html" title="Blocks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="utilities.html" title="Convenient Decorators"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyop.convert">
+<span id="converting-linearoperators"></span><h1>Converting LinearOperators<a class="headerlink" href="#module-pyop.convert" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for converting to and from a <a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a>.</p>
+<dl class="function">
+<dt id="pyop.convert.toLinearOperator">
+<tt class="descname">toLinearOperator</tt><big>(</big><em>m</em><big>)</big><a class="reference internal" href="../_modules/pyop/convert.html#toLinearOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.convert.toLinearOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lifts a numpy.ndarray into the LinearOperator type.</p>
+<p>When using this function, all of the functional space and time
+saving benefits are lost since the result is an operator that
+performs a standard matrix multiplication.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>m</strong> : numpy.ndarray or scipy.sparse</p>
+<blockquote>
+<div><p>the matrix to convert into an LinearOperator.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote>
+<div><p>the transform lifted into the LinearOperator context.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong></p>
+<blockquote class="last">
+<div><p>When the input dimension is not equal to 2.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.convert.toMatrix" title="pyop.convert.toMatrix"><tt class="xref py py-obj docutils literal"><span class="pre">toMatrix</span></tt></a></dt>
+<dd>Convert a LinearOperator to a matrix.</dd>
+<dt><a class="reference internal" href="#pyop.convert.toScipyLinearOperator" title="pyop.convert.toScipyLinearOperator"><tt class="xref py py-obj docutils literal"><span class="pre">toScipyLinearOperator</span></tt></a></dt>
+<dd>Convert a LinearOperator to the SciPy version of a LinearOperator.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toLinearOperator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A_op</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A_op</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+<span class="go">array([3, 7])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.convert.toMatrix">
+<tt class="descname">toMatrix</tt><big>(</big><em>O</em>, <em>sparse=False</em><big>)</big><a class="reference internal" href="../_modules/pyop/convert.html#toMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.convert.toMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an LinearOperator into its matrix form.</p>
+<p>Converting an LinearOperator into a matrix could make a large
+amount of space and time. One of the purposes of the LinearOperator
+abstraction is to allow transformations that would otherwise require
+too much space or time to be computed.</p>
+<p>This function will not work if the functions passed in the creation of
+the LinearOperator do not respect matrix inputs. This enforcement cannot
+be easily done automatically, and as such the developer will need to be
+concious of this fact when writing LinearOperators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>sparse</strong> : bool, optional</p>
+<blockquote>
+<div><p>Passes in a sparse matrix to the LinearOperator instead of a dense
+one. For this parameter to work, the functions that a LinearOperator
+calls (forward, adjoint) must respect the type of the input.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy.ndarray</p>
+<blockquote class="last">
+<div><p>the matrix representation of the transform.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.convert.toLinearOperator" title="pyop.convert.toLinearOperator"><tt class="xref py py-obj docutils literal"><span class="pre">toLinearOperator</span></tt></a></dt>
+<dd>Convert a matrix to a LinearOperator.</dd>
+<dt><a class="reference internal" href="#pyop.convert.toScipyLinearOperator" title="pyop.convert.toScipyLinearOperator"><tt class="xref py py-obj docutils literal"><span class="pre">toScipyLinearOperator</span></tt></a></dt>
+<dd>Convert a LinearOperator to the SciPy version of a LinearOperator.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">LinearOperator</span><span class="p">,</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A_op</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">A_op</span><span class="p">)</span>
+<span class="go">array([[ 1.,  0.],</span>
+<span class="go">       [ 0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.convert.toScipyLinearOperator">
+<tt class="descname">toScipyLinearOperator</tt><big>(</big><em>O</em>, <em>dtype=&lt;class 'float'&gt;</em><big>)</big><a class="reference internal" href="../_modules/pyop/convert.html#toScipyLinearOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.convert.toScipyLinearOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a LinearOperator into a scipy.sparse.linalg.LinearOperator</p>
+<p>Scipy comes with come handy functions for calculating properties of a
+linear operator in a matrix free manner, using their LinearOperator
+class. However, that class is difficult to use for composition because
+it does not support the transpose operation and has no block matrix
+creation function. This function is designed to allow the developer to
+work with the composition functions provided by the PyOp package while
+still being able to utilise these SciPy functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>O</strong> : LinearOperator</p>
+<blockquote>
+<div><p>The LinearOperator to convert into the Scipy format.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">scipy.sparse.linalg.LinearOperator</p>
+<blockquote class="last">
+<div><p>The operator O as a Scipy LinearOperator, suitable for the Scipy
+matrix free functions.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.convert.toMatrix" title="pyop.convert.toMatrix"><tt class="xref py py-obj docutils literal"><span class="pre">toMatrix</span></tt></a></dt>
+<dd>Convert a LinearOperator to a matrix.</dd>
+<dt><a class="reference internal" href="#pyop.convert.toLinearOperator" title="pyop.convert.toLinearOperator"><tt class="xref py py-obj docutils literal"><span class="pre">toLinearOperator</span></tt></a></dt>
+<dd>Convert a matrix to a LinearOperator.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">as</span> <span class="nn">linalg</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="k">lambda</span>  <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="k">lambda</span>  <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">D</span> <span class="o">=</span> <span class="n">toScipyLinearOperator</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">C</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">array([[ 9.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  9.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  9.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  9.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">linalg</span><span class="o">.</span><span class="n">eigsh</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c">## First eigenvalue</span>
+<span class="go">9.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/api/convert.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

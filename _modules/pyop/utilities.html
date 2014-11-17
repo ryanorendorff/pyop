@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyop.utilities &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyOp 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyop.utilities</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Often, certain forward and adjoint functions are simpler to define as a</span>
+<span class="sd">matrix-matrix multiplication or to operate on a reshape version of the</span>
+<span class="sd">input. The decorators defined here allow for functions of these forms to be</span>
+<span class="sd">modified to matrix-matrix functions easily. The examples for each decorator</span>
+<span class="sd">give a good sample of how to use such functions.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">update_wrapper</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="k">def</span> <span class="nf">__wrapIfPy3</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="matmat"><a class="viewcode-back" href="../../api/utilities.html#pyop.utilities.matmat">[docs]</a><span class="k">def</span> <span class="nf">matmat</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Convert 1D array to 2D column and back to 1D after calculation.</span>
+
+<span class="sd">    This function is meant to work only with functions following the</span>
+<span class="sd">    :class:`.LinearOperator` calling declaration, which is a function taking</span>
+<span class="sd">    in only one argument, the data to work on.</span>
+
+<span class="sd">    If the function receives a sparse input, then this wrapper does nothing</span>
+<span class="sd">    since a sparse matrix cannot be squeeze or reshaped without significant</span>
+<span class="sd">    alterations in its structure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : function</span>
+<span class="sd">        The function that is programmed to operate on arrays of two</span>
+<span class="sd">        dimensions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function</span>
+<span class="sd">        A function that ensures the input data is at least 2 dimensional and</span>
+<span class="sd">        that the result is a 1D array if the input was also 1D.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    matvec : Defines a matrix-matrix( function from matrix-matvec.</span>
+<span class="sd">    matvectorized : Like matvec but reshapes the input automatically.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import LinearOperator</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; def squareEye(shape):</span>
+<span class="sd">    ...     #</span>
+<span class="sd">    ...     @matmat</span>
+<span class="sd">    ...     def id(x):</span>
+<span class="sd">    ...         return x</span>
+<span class="sd">    ...     #</span>
+<span class="sd">    ...     return LinearOperator((shape, shape), id, id)</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; I = squareEye(4)</span>
+<span class="sd">    &gt;&gt;&gt; I(np.arange(4))</span>
+<span class="sd">    array([0, 1, 2, 3])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="c">## If the input is sparse, then pass through without alteration.</span>
+        <span class="k">if</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c">## Convert a 1D x into a column 2D array.</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="k">return</span> <span class="n">__wrapIfPy3</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="matvec"><a class="viewcode-back" href="../../api/utilities.html#pyop.utilities.matvec">[docs]</a><span class="k">def</span> <span class="nf">matvec</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Operates on an input matrix one column at a time.</span>
+
+<span class="sd">    A function that implements a matrix-matrix function from a matrix-</span>
+<span class="sd">    vector function. This decorator takes an input matrix, feeds each column</span>
+<span class="sd">    as a 1D array to the function f, and then combines the results.</span>
+
+<span class="sd">    Often it is more natural to define matrix-vector function, since the</span>
+<span class="sd">    matrix-matrix function is just the collection of the matrix-vector</span>
+<span class="sd">    function applied to each column of the input. For these cases, use this</span>
+<span class="sd">    decorator.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : function with arguments (x)</span>
+<span class="sd">        The function that implements a matrix-vector product.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function</span>
+<span class="sd">        A function that implements a matrix-matrix function.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    matmat : ensures the input to a function is 2 dimensional.</span>
+<span class="sd">    matvectorized : Like matvec but reshapes the input automatically.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import matvec</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; @matvec</span>
+<span class="sd">    ... def multFirstColumn(column):</span>
+<span class="sd">    ...     img = column.reshape((2, 2), order = &#39;C&#39;)</span>
+<span class="sd">    ...     img[:, 0] *= 2</span>
+<span class="sd">    ...     return img.flatten(0)</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; multFirstColumn(np.array([[1, 1, 1, 1], [2, 1, 2, 1]]).T)</span>
+<span class="sd">    array([[2, 4],</span>
+<span class="sd">           [1, 1],</span>
+<span class="sd">           [2, 4],</span>
+<span class="sd">           [1, 1]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@matmat</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">__wrapIfPy3</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="matvectorized"><a class="viewcode-back" href="../../api/utilities.html#pyop.utilities.matvectorized">[docs]</a><span class="k">def</span> <span class="nf">matvectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Decorator to turn a function on a matrix into matrix-matrix product.</span>
+
+<span class="sd">    This decorator is an extension of matvec. It operates on each column</span>
+<span class="sd">    of a matrix at a time, but before passing the column to the decorated</span>
+<span class="sd">    function, matvectorized reshapes the column based on the dimensions and</span>
+<span class="sd">    order supplied into a nD array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : tuple</span>
+<span class="sd">        The shape of the data in non-matvec form.</span>
+
+<span class="sd">    order = {&#39;C&#39;, &#39;F&#39;, &#39;A&#39;}, optional</span>
+<span class="sd">        The order by which the matvecized image is reshaped. This is the</span>
+<span class="sd">        same parameter as given to functions like numpy.reshape. For a</span>
+<span class="sd">        discussion of the memory efficiency of different orders and how that</span>
+<span class="sd">        is determined by the underlying format, see the documentation of</span>
+<span class="sd">        commands that take an order argument.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function</span>
+<span class="sd">        A function that can be used to decorate another function.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import matvectorized</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; @matvectorized((2, 2))</span>
+<span class="sd">    ... def multFirstColumn(img):</span>
+<span class="sd">    ...     img[:, 0] *= 2</span>
+<span class="sd">    ...     return img</span>
+<span class="sd">    &gt;&gt;&gt; #</span>
+<span class="sd">    &gt;&gt;&gt; multFirstColumn(np.array([[1, 1, 1, 1], [2, 1, 2, 1]]).T)</span>
+<span class="sd">    array([[2, 4],</span>
+<span class="sd">           [1, 1],</span>
+<span class="sd">           [2, 4],</span>
+<span class="sd">           [1, 1]])</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    matmat : ensures the input to a function is 2 dimensional.</span>
+<span class="sd">    matvec : Like matvectorized but does not reshapes the input.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+
+        <span class="nd">@matvec</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">__wrapIfPy3</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorator</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyop.operators.fft &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyOp 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyop.operators.fft</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">The functions below create LinearOperator versions of fftn and the like,</span>
+<span class="sd">operating on vectorized versions of an input array.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c">## For calculating shape of FFT LinearOperators</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="nb">reduce</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
+
+<span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">matvectorized</span><span class="p">,</span> <span class="n">LinearOperator</span>
+
+
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="kn">import</span> <span class="n">doccer</span>
+
+<span class="n">__shape_doc</span> <span class="o">=</span> \
+<span class="sd">&quot;&quot;&quot;shape : tuple</span>
+<span class="sd">    The shape of the array in its unvectorized form.&quot;&quot;&quot;</span>
+
+<span class="n">__s_doc</span> <span class="o">=</span> \
+<span class="sd">&quot;&quot;&quot;s : sequence of ints, optional</span>
+<span class="sd">    Length of each axis in the input. Must be the same number of</span>
+<span class="sd">    elements as shape. If the length for a dimension is shorter the</span>
+<span class="sd">    shape value, then the input is cropped. If the dimension is longer,</span>
+<span class="sd">    it is padded with zeros. If s is not given (the default), then s =</span>
+<span class="sd">    shape (no cropping or padding).&quot;&quot;&quot;</span>
+<span class="n">__order_doc</span> <span class="o">=</span> \
+<span class="sd">&quot;&quot;&quot;order = {&#39;C&#39;, &#39;F&#39;}, optional</span>
+<span class="sd">    The order by which the vectorized image is reshaped. This is the</span>
+<span class="sd">    same parameter as given to functions like numpy.reshape. For a</span>
+<span class="sd">    discussion of the memory efficiency of different orders and how that</span>
+<span class="sd">    is determined by the underlying format, see the documentation of</span>
+<span class="sd">    commands that take an order argument.&quot;&quot;&quot;</span>
+
+<span class="n">__axes_doc</span> <span class="o">=</span> \
+<span class="sd">&quot;&quot;&quot;axes : int or shape tuple, optional</span>
+<span class="sd">    Axes to shift. The None default shifts all axes. Axes can be</span>
+<span class="sd">    specified more than once and they will be flipped multiple times.&quot;&quot;&quot;</span>
+
+<span class="n">__shift_doc</span> <span class="o">=</span> \
+<span class="sd">&quot;&quot;&quot;shift : &quot;none&quot;, &quot;all&quot; or shape tuple</span>
+<span class="sd">    The axes to shift. If &quot;none&quot;, no FFT shift is performed. If &quot;all&quot;,</span>
+<span class="sd">    every axis is shifted to so the DC value is in the center of the</span>
+<span class="sd">    array. Otherwise shift takes a tuple input that shifts only the</span>
+<span class="sd">    specified axes. Duplicates are allowed, this causes the axes to be</span>
+<span class="sd">    flipped multiple times.&quot;&quot;&quot;</span>
+
+
+<span class="n">docdict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="s">&#39;shape&#39;</span> <span class="p">:</span> <span class="n">__shape_doc</span><span class="p">,</span>
+<span class="s">&#39;s&#39;</span> <span class="p">:</span> <span class="n">__s_doc</span><span class="p">,</span>
+<span class="s">&#39;order&#39;</span> <span class="p">:</span> <span class="n">__order_doc</span><span class="p">,</span>
+<span class="s">&#39;axes&#39;</span> <span class="p">:</span> <span class="n">__axes_doc</span><span class="p">,</span>
+<span class="s">&#39;shift&#39;</span> <span class="p">:</span> <span class="n">__shift_doc</span><span class="p">,</span>
+<span class="s">&#39;fft&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;fft : LinearOperator version of fftn, use if setting the s parameter</span>
+<span class="sd">    for the fft is required.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s">&#39;ifft&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;ifft : LinearOperator version of ifftn, use if setting the s parameter</span>
+<span class="sd">    for the ifft is required.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s">&#39;fftshift&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;fftshift : LinearOperator version of fftshift&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s">&#39;ifftshift&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;ifftshift : LinearOperator version of ifftshift&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s">&#39;fftwrap&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;fftwrap : Wraps an operator in an FFT, and then undoes the FFT.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="s">&#39;ifftwrap&#39;</span> <span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;ifftwrap : Wraps an operator in an IFFT, and then undoes the IFFT.&quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<span class="n">docfill</span> <span class="o">=</span> <span class="n">doccer</span><span class="o">.</span><span class="n">filldoc</span><span class="p">(</span><span class="n">docdict</span><span class="p">)</span>
+
+<span class="c">##########</span>
+<span class="c">#  FFTs  #</span>
+<span class="c">##########</span>
+
+<span class="k">def</span> <span class="nf">__fourier</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dual</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; f  is which fft function to use (fft, ifft), dual is the</span>
+<span class="sd">    dual to it. &#39;&#39;&#39;</span>
+
+    <span class="c">## If s is None then just make it shape, no padding or cropping.</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">shape</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;FFT does not understand different sized &quot;</span>
+                         <span class="s">&quot;shape ({}), s ({})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;shape must be positive. {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;s must be positive. {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+
+    <span class="n">domain</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="n">codomain</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+    <span class="c">## Some helper functions</span>
+    <span class="n">positive</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">x</span>
+    <span class="n">column_deficit</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">positive</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="n">s</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
+
+    <span class="nd">@matvectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">)</span>
+
+
+    <span class="nd">@matvectorized</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">adjoint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">dual</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">res_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">res</span><span class="p">,</span>
+            <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">column_deficit</span><span class="p">(</span><span class="n">d</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shape</span><span class="p">)],</span>
+            <span class="s">&#39;constant&#39;</span><span class="p">,</span> <span class="n">constant_values</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res_pad</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">)]</span>
+
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">codomain</span><span class="p">,</span> <span class="n">domain</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">adjoint</span><span class="p">)</span>
+
+
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="fft"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.fft">[docs]</a><span class="k">def</span> <span class="nf">fft</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Matrix free DFT operator in N-dimensions.</span>
+
+<span class="sd">    Performs the FFT on an N dimensional input that has been vectorized.</span>
+<span class="sd">    The adjoint of this operator is the IFFT. The parameter s influences</span>
+<span class="sd">    precisely the relation between the forward and adjoint: if the input is</span>
+<span class="sd">    zero padded due to s, then the adjoint will crop back down to the shape</span>
+<span class="sd">    size. Similarly, if s crops the input, then the adjoint will pad the</span>
+<span class="sd">    output with zeros to match the shape size.</span>
+
+<span class="sd">    The results, even if the input is real, will be complex.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">    %(s)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator performing the fft on all dimensions.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If either shape or s contain a negative element.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the length of s is not the length of shape.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(ifft)s</span>
+<span class="sd">    %(fftshift)s</span>
+<span class="sd">    %(ifftshift)s</span>
+<span class="sd">    %(fftwrap)s</span>
+<span class="sd">    %(ifftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import fft</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([0, 1, 2, 3, 2, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; F = fft(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 9.00000000+0.j        , -4.54891734-2.19064313j,</span>
+<span class="sd">            0.19202147+0.24078731j, -0.14310413-0.62698017j,</span>
+<span class="sd">           -0.14310413+0.62698017j,  0.19202147-0.24078731j,</span>
+<span class="sd">           -4.54891734+2.19064313j])</span>
+<span class="sd">    &gt;&gt;&gt; np.real((F.T*F)(a))</span>
+<span class="sd">    array([  2.95002118e-15,   1.00000000e+00,   2.00000000e+00,</span>
+<span class="sd">             3.00000000e+00,   2.00000000e+00,   1.00000000e+00,</span>
+<span class="sd">            -1.90323947e-15])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fourier</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftn</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifftn</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+</div>
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="ifft"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.ifft">[docs]</a><span class="k">def</span> <span class="nf">ifft</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Matrix free inverse DFT operator in N-dimensions.</span>
+
+<span class="sd">    Performs the IFFT on an N dimensional input that has been vectorized.</span>
+<span class="sd">    The adjoint of this operator is the FFT. The parameter s influences</span>
+<span class="sd">    precisely the relation between the forward and adjoint: if the input is</span>
+<span class="sd">    zero padded due to s, then the adjoint will crop back down to the shape</span>
+<span class="sd">    size. Similarly, if s crops the input, then the adjoint will pad the</span>
+<span class="sd">    output with zeros to match the shape size.</span>
+
+<span class="sd">    The results, even if the input is real, will be complex.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">        The shape of the array to perform an IFFT on.</span>
+<span class="sd">    %(s)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator performing the fft on all dimensions.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If either shape or s contain a negative element.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the length of s is not the length of shape.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(fft)s</span>
+<span class="sd">    %(fftshift)s</span>
+<span class="sd">    %(ifftshift)s</span>
+<span class="sd">    %(fftwrap)s</span>
+<span class="sd">    %(ifftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import ifft</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([0, 1, 2, 3, 2, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; F = ifft(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 1.28571429+0.j        , -0.64984533+0.31294902j,</span>
+<span class="sd">            0.02743164-0.03439819j, -0.02044345+0.0895686j ,</span>
+<span class="sd">           -0.02044345-0.0895686j ,  0.02743164+0.03439819j,</span>
+<span class="sd">           -0.64984533-0.31294902j])</span>
+<span class="sd">    &gt;&gt;&gt; np.real((F.T*F)(a))</span>
+<span class="sd">    array([  2.78943535e-15,   1.00000000e+00,   2.00000000e+00,</span>
+<span class="sd">             3.00000000e+00,   2.00000000e+00,   1.00000000e+00,</span>
+<span class="sd">            -2.05391260e-15])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fourier</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifftn</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftn</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+
+<span class="c">################</span>
+<span class="c">#  FFT Shifts  #</span>
+<span class="c">################</span>
+</div>
+<span class="k">def</span> <span class="nf">__fouriershift</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; f is which shift to perform (fftshift, ifftshift) &#39;&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;shape must be positive. {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">axes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;axes must be positive. {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Out of bound axes. {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axes</span><span class="p">))</span>
+
+
+    <span class="n">domain</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+
+    <span class="nd">@matvectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">domain</span><span class="p">,</span> <span class="n">domain</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">forward</span><span class="p">)</span>
+
+
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="fftshift"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.fftshift">[docs]</a><span class="k">def</span> <span class="nf">fftshift</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Shift the zero frequency to the center.</span>
+
+<span class="sd">    Flips the axes in an input to move the zero frequency. By default, all</span>
+<span class="sd">    of the axes are flipped, moving the DC component to the center of the</span>
+<span class="sd">    array. However, this can be modified by altering the axes input.</span>
+
+<span class="sd">    This operator is self adjoint. This means that it will likely be used</span>
+<span class="sd">    with the ifftshift to sandwich an operator, such as `ifftshift *</span>
+<span class="sd">    operator * fftshift`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">    %(axes)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator performing the fftshift.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(fft)s</span>
+<span class="sd">    %(ifft)s</span>
+<span class="sd">    %(ifftshift)s</span>
+<span class="sd">    %(fftwrap)s</span>
+<span class="sd">    %(ifftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import fft, fftshift</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([0, 1, 2, 3, 2, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; F = fft(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 9.00000000+0.j        , -4.54891734-2.19064313j,</span>
+<span class="sd">            0.19202147+0.24078731j, -0.14310413-0.62698017j,</span>
+<span class="sd">           -0.14310413+0.62698017j,  0.19202147-0.24078731j,</span>
+<span class="sd">           -4.54891734+2.19064313j])</span>
+<span class="sd">    &gt;&gt;&gt; S = fftshift(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; (S*F)(a)</span>
+<span class="sd">    array([-0.14310413+0.62698017j,  0.19202147-0.24078731j,</span>
+<span class="sd">           -4.54891734+2.19064313j,  9.00000000+0.j        ,</span>
+<span class="sd">           -4.54891734-2.19064313j,  0.19202147+0.24078731j,</span>
+<span class="sd">           -0.14310413-0.62698017j])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fouriershift</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+</div>
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="ifftshift"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.ifftshift">[docs]</a><span class="k">def</span> <span class="nf">ifftshift</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Shift the zero frequency to the center.</span>
+
+<span class="sd">    Flips the axes in an input to move the zero frequency. By default, all</span>
+<span class="sd">    of the axes are flipped, moving the DC component to the center of the</span>
+<span class="sd">    array. However, this can be modified by altering the axes input.</span>
+
+<span class="sd">    This operator is self adjoint. This means that it will likely be used</span>
+<span class="sd">    with the ifftshift to sandwich an operator, such as `fftshift *</span>
+<span class="sd">    operator * ifftshift`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">    %(axes)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator performing the fftshift.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(fft)s</span>
+<span class="sd">    %(ifft)s</span>
+<span class="sd">    %(fftshift)s</span>
+<span class="sd">    %(fftwrap)s</span>
+<span class="sd">    %(ifftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import ifft, ifftshift</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([0, 1, 2, 3, 2, 1, 0])</span>
+<span class="sd">    &gt;&gt;&gt; F = ifft(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 1.28571429+0.j        , -0.64984533+0.31294902j,</span>
+<span class="sd">            0.02743164-0.03439819j, -0.02044345+0.0895686j ,</span>
+<span class="sd">           -0.02044345-0.0895686j ,  0.02743164+0.03439819j,</span>
+<span class="sd">           -0.64984533-0.31294902j])</span>
+<span class="sd">    &gt;&gt;&gt; S = ifftshift(a.shape)</span>
+<span class="sd">    &gt;&gt;&gt; (S*F)(a)</span>
+<span class="sd">    array([-0.02044345+0.0895686j , -0.02044345-0.0895686j ,</span>
+<span class="sd">            0.02743164+0.03439819j, -0.64984533-0.31294902j,</span>
+<span class="sd">            1.28571429+0.j        , -0.64984533+0.31294902j,</span>
+<span class="sd">            0.02743164-0.03439819j])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fouriershift</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifftshift</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+
+<span class="c">##################################</span>
+<span class="c">#  Composition Helper Functions  #</span>
+<span class="c">##################################</span>
+</div>
+<span class="k">def</span> <span class="nf">__fourierwrap</span><span class="p">(</span><span class="n">fft_func</span><span class="p">,</span> <span class="n">O</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">fft_func</span> <span class="ow">is</span> <span class="n">fft</span><span class="p">:</span>
+        <span class="n">shift_func</span> <span class="o">=</span> <span class="n">fftshift</span>
+        <span class="n">shift_dual</span> <span class="o">=</span> <span class="n">ifftshift</span>
+
+    <span class="k">if</span> <span class="n">fft_func</span> <span class="ow">is</span> <span class="n">ifft</span><span class="p">:</span>
+        <span class="n">shift_func</span> <span class="o">=</span> <span class="n">ifftshift</span>
+        <span class="n">shift_dual</span> <span class="o">=</span> <span class="n">fftshift</span>
+
+    <span class="k">if</span> <span class="n">shift</span> <span class="ow">is</span> <span class="s">&quot;all&quot;</span><span class="p">:</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">F</span> <span class="o">=</span> <span class="n">fft_func</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">shift</span> <span class="ow">is</span> <span class="s">&quot;none&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">O</span> <span class="o">*</span> <span class="n">F</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">shift_func</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">Sinv</span> <span class="o">=</span> <span class="n">shift_dual</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">Sinv</span> <span class="o">*</span> <span class="n">O</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">F</span>
+
+
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="fftwrap"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.fftwrap">[docs]</a><span class="k">def</span> <span class="nf">fftwrap</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">shift</span> <span class="o">=</span> <span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Surrounds an operator with FFT operations.</span>
+
+<span class="sd">    Given an operator O, this function returns the following in the case of</span>
+<span class="sd">    no shift (shift = &#39;none&#39;),</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F^T O F</span>
+
+<span class="sd">    and the following when shift is any other value.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F^T S_{\mathrm{inv}} O S F</span>
+
+<span class="sd">    where</span>
+
+<span class="sd">    - :math:`F` is the FFT operation</span>
+<span class="sd">    - :math:`S` is a FFT shift</span>
+<span class="sd">    - :math:`S_{\mathrm{inv}}` is an IFFT shift</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    O : LinearOperator</span>
+<span class="sd">        The operator to wrap.</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">    %(s)s</span>
+<span class="sd">    %(shift)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator that performs some action in FFT/x-space domain.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(fft)s</span>
+<span class="sd">    %(ifft)s</span>
+<span class="sd">    %(fftshift)s</span>
+<span class="sd">    %(ifftshift)s</span>
+<span class="sd">    %(ifftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import fftwrap</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import LinearOperator</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([1, 1, 1, 1])</span>
+<span class="sd">    &gt;&gt;&gt; I = LinearOperator((4, 4), lambda x: x, lambda x: x)</span>
+<span class="sd">    &gt;&gt;&gt; F = fftwrap(I, (4,))</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fourierwrap</span><span class="p">(</span><span class="n">fft</span><span class="p">,</span> <span class="n">O</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+</div>
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="ifftwrap"><a class="viewcode-back" href="../../../operators/fft.html#pyop.operators.fft.ifftwrap">[docs]</a><span class="k">def</span> <span class="nf">ifftwrap</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">shift</span> <span class="o">=</span> <span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Surrounds an operator with IFFT operations.</span>
+
+<span class="sd">    Given an operator O, this function returns the following in the case of</span>
+<span class="sd">    no shift (shift = &#39;none&#39;),</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F^T O F</span>
+
+<span class="sd">    and the following when shift is any other value.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F^T S_{\mathrm{inv}} O S F</span>
+
+<span class="sd">    where</span>
+
+<span class="sd">    - :math:`F` is the IFFT operation</span>
+<span class="sd">    - :math:`S` is an IFFT shift</span>
+<span class="sd">    - :math:`S_{\mathrm{inv}}` is a FFT shift</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    O : LinearOperator</span>
+<span class="sd">        The operator to wrap.</span>
+<span class="sd">    %(shape)s</span>
+<span class="sd">    %(s)s</span>
+<span class="sd">    %(shift)s</span>
+<span class="sd">    %(order)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator that performs some action in FFT/x-space domain.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(fft)s</span>
+<span class="sd">    %(ifft)s</span>
+<span class="sd">    %(fftshift)s</span>
+<span class="sd">    %(ifftshift)s</span>
+<span class="sd">    %(fftwrap)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import ifftwrap</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import LinearOperator</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([1, 1, 1, 1])</span>
+<span class="sd">    &gt;&gt;&gt; I = LinearOperator((4, 4), lambda x: x, lambda x: x)</span>
+<span class="sd">    &gt;&gt;&gt; F = ifftwrap(I, (4,))</span>
+<span class="sd">    &gt;&gt;&gt; F(a)</span>
+<span class="sd">    array([ 1.+0.j,  1.+0.j,  1.+0.j,  1.+0.j])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">__fourierwrap</span><span class="p">(</span><span class="n">ifft</span><span class="p">,</span> <span class="n">O</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

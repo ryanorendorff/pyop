@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Linear Operator Tutorial &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Operator Rules" href="rules.html" />
+    <link rel="prev" title="Simple Matrix Free Operators" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rules.html" title="Operator Rules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Simple Matrix Free Operators"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="linear-operator-tutorial">
+<h1>Linear Operator Tutorial<a class="headerlink" href="#linear-operator-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>PyOp is designed to generalize the concept of a linear operator in the
+context of scientific computing and software development.</p>
+<p><a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances are quite simple to create.
+Below we discuss different ways of defining operators. For more information
+look at the source for those already defined in PyOp itself.</p>
+<div class="section" id="unbound-functions">
+<h2>Unbound Functions<a class="headerlink" href="#unbound-functions" title="Permalink to this headline">¶</a></h2>
+<p>The basic way to create a <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instance is to
+just pass forward and adjoint functions to the
+<a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> constructor. The following example
+implements a square identity in this manner.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">x</span>
+
+<span class="n">I</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is a great way to test new forward and adjoint functions alone during
+development.</p>
+</div>
+<div class="section" id="nested-functions-closures">
+<h2>Nested Functions/Closures<a class="headerlink" href="#nested-functions-closures" title="Permalink to this headline">¶</a></h2>
+<p>Often it is helpful to create a <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> in a
+nested function.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">squareIdentity</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+
+    <span class="c"># Do some pre-processing here.</span>
+
+    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">),</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that in the above example, since <tt class="docutils literal"><span class="pre">squareIdentity</span></tt> is a nested fuction,
+the inner <tt class="docutils literal"><span class="pre">id</span></tt> function can operate on any data created before it in the
+<tt class="docutils literal"><span class="pre">squareIdentity</span></tt> lexical environment.  This can very useful when realizing
+complicated operators or, for example, to create many similar operators that
+define the same basic morphism over different dimensions, as shown here.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Linear Operator Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unbound-functions">Unbound Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nested-functions-closures">Nested Functions/Closures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/tutorial/linop.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

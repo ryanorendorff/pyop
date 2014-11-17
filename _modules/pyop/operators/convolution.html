@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyop.operators.convolution &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyOp 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyop.operators.convolution</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.signal</span> <span class="kn">as</span> <span class="nn">signal</span>
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="kn">import</span> <span class="n">central_diff_weights</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="nb">reduce</span><span class="p">,</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">repeat</span>
+
+<span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">LinearOperator</span><span class="p">,</span> <span class="n">matvectorized</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="k">def</span> <span class="nf">__flip</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Flips all the dimensions of an array &#39;&#39;&#39;</span>
+
+    <span class="n">every</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">reverse</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">repeat</span><span class="p">(</span><span class="n">every</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="n">reverse</span><span class="p">,)]</span>
+
+    <span class="k">return</span> <span class="n">a</span>
+
+
+<div class="viewcode-block" id="convolve"><a class="viewcode-back" href="../../../operators/convolution.html#pyop.operators.convolution.convolve">[docs]</a><span class="k">def</span> <span class="nf">convolve</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Convolve two N-dimensional arrays as a LinearOperator.</span>
+
+<span class="sd">    Note that this only implements the &quot;same&quot; convolution mode seen in other</span>
+<span class="sd">    functions. This is often the desired mode for linear systems since the</span>
+<span class="sd">    problem does not alter dimensions when the convolution is applied.</span>
+
+<span class="sd">    For this operator to work, the number of dimensions in the kernel must</span>
+<span class="sd">    match the number of fields in the shape tuple.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kernel : ndarray</span>
+<span class="sd">        The kernel by which to do the convolving.</span>
+
+<span class="sd">    shape : tuple</span>
+<span class="sd">        The shape of the array in non-vector form.</span>
+
+<span class="sd">    order = {&#39;C&#39;, &#39;F&#39;, &#39;A&#39;}, optional</span>
+<span class="sd">        The order by which the vectorized array is reshaped. This is the</span>
+<span class="sd">        same parameter as given to functions like numpy.reshape. For a</span>
+<span class="sd">        discussion of the memory efficiency of different orders and how that</span>
+<span class="sd">        is determined by the underlying format, see the documentation of</span>
+<span class="sd">        commands that take an order argument.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator implementing the convolution on vectorized inputs.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        When the inputs are not the same dimension.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    scipy.signal.convolve : The array based version of this operation.</span>
+<span class="sd">    :func:`.fft` : LinearOperator version of fftn.</span>
+<span class="sd">    :func:`.ifft` : LinearOperator version of ifftn.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import convolve</span>
+<span class="sd">    &gt;&gt;&gt; A = np.linspace(1,9,9).reshape(3,3)</span>
+<span class="sd">    &gt;&gt;&gt; kernel = np.array([[-1, 1]])</span>
+<span class="sd">    &gt;&gt;&gt; C = convolve(kernel, (3, 3))</span>
+<span class="sd">    &gt;&gt;&gt; C(np.ravel(A))</span>
+<span class="sd">    array([-1., -1., -1., -4., -1., -1., -7., -1., -1.])</span>
+<span class="sd">    &gt;&gt;&gt; C(np.ravel(A)).reshape(3,3)</span>
+<span class="sd">    array([[-1., -1., -1.],</span>
+<span class="sd">           [-4., -1., -1.],</span>
+<span class="sd">           [-7., -1., -1.]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kernel</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;kernel and shape must have &quot;</span>
+                         <span class="s">&quot;the same dimensions.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">order</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;The order must be &#39;C&#39;, &#39;F&#39;, or &#39;A&#39;&quot;</span><span class="p">)</span>
+
+
+    <span class="n">vector_length</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="n">op_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">vector_length</span><span class="p">,</span> <span class="n">vector_length</span><span class="p">)</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">ndim</span>
+
+    <span class="n">adjoint_kernel</span> <span class="o">=</span> <span class="n">__flip</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+
+    <span class="c">## f_start is the number of extra vectors at the start of a dimension</span>
+    <span class="c">## caused by the kernel. Then take shape number of vectors to get</span>
+    <span class="c">## the same size.</span>
+    <span class="n">f_start</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">f_stop</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">f_start</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+    <span class="n">f_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="nb">slice</span><span class="p">(</span><span class="n">f_start</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">f_stop</span><span class="p">(</span><span class="n">d</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+    <span class="c">## The same idea as above, but the extra vectors appear in kernel.shape</span>
+    <span class="c">## - 1 // 2 on the right side, so kernel.shape // 2 on the left.</span>
+    <span class="n">a_start</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">adjoint_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">a_stop</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">a_start</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+    <span class="n">a_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="nb">slice</span><span class="p">(</span><span class="n">a_start</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">a_stop</span><span class="p">(</span><span class="n">d</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+    <span class="c">## Convert function taking a matrix input to one that operates on each</span>
+    <span class="c">## column, where each column is already reshaped into the shape.</span>
+    <span class="n">mv</span> <span class="o">=</span> <span class="n">matvectorized</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">convSame</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">slc</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="s">&#39;full&#39;</span><span class="p">)[</span><span class="n">slc</span><span class="p">]</span>
+
+
+    <span class="c">## The result is square, it preserves shape.</span>
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">(</span><span class="n">op_shape</span><span class="p">,</span>
+        <span class="n">mv</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">convSame</span><span class="p">,</span> <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">slc</span> <span class="o">=</span> <span class="n">f_slice</span><span class="p">)),</span>
+        <span class="n">mv</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">convSame</span><span class="p">,</span> <span class="n">kernel</span> <span class="o">=</span> <span class="n">adjoint_kernel</span><span class="p">,</span> <span class="n">slc</span> <span class="o">=</span> <span class="n">a_slice</span><span class="p">)))</span>
+
+</div>
+<div class="viewcode-block" id="gradient"><a class="viewcode-back" href="../../../operators/convolution.html#pyop.operators.convolution.gradient">[docs]</a><span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="n">derivative</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Approximate the derivative with a central difference.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    derivative : int</span>
+<span class="sd">        The order of the derivative to approximate.</span>
+
+<span class="sd">    points : int</span>
+<span class="sd">        The number of points in the central difference. Must be an odd</span>
+<span class="sd">        integer greater than `derivative`.</span>
+
+<span class="sd">    shape : tuple</span>
+<span class="sd">        The shape of the array in non-vector form.</span>
+
+<span class="sd">    step: tuple, optional</span>
+<span class="sd">        The step sizes between adjacent values along each dimension in the</span>
+<span class="sd">        array. Passing None defaults to step size 1.0 along all dimensions.</span>
+
+<span class="sd">    order = {&#39;C&#39;, &#39;F&#39;, &#39;A&#39;}, optional</span>
+<span class="sd">        The order by which the vectorized array is reshaped. This is the</span>
+<span class="sd">        same parameter as given to functions like numpy.reshape. For a</span>
+<span class="sd">        discussion of the memory efficiency of different orders and how that</span>
+<span class="sd">        is determined by the underlying format, see the documentation of</span>
+<span class="sd">        commands that take an order argument.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearOperator</span>
+<span class="sd">        A LinearOperator implementing the central difference on vectorized</span>
+<span class="sd">        inputs.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        When the inputs are not the right dimensions.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    convolve : The central difference is calculated using this LinearOperator.</span>
+<span class="sd">    scipy.misc.central_diff_weights : The scipy function returning the</span>
+<span class="sd">        required weights for calculating the central difference.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.operators import gradient</span>
+<span class="sd">    &gt;&gt;&gt; grad = gradient(1, 3, (5,6))</span>
+<span class="sd">    &gt;&gt;&gt; laplace = gradient(2, 3, (5,6), step=(0.5,2))</span>
+<span class="sd">    &gt;&gt;&gt; A = np.indices((5,6)).sum(0)**2 / 2.</span>
+<span class="sd">    &gt;&gt;&gt; grad(np.ravel(A)).reshape(5,6)</span>
+<span class="sd">    array([[  0.5 ,   2.  ,   4.25,   7.  ,  10.25,   5.  ],</span>
+<span class="sd">           [  2.  ,   4.  ,   6.  ,   8.  ,  10.  ,  -0.25],</span>
+<span class="sd">           [  4.25,   6.  ,   8.  ,  10.  ,  12.  ,  -2.  ],</span>
+<span class="sd">           [  7.  ,   8.  ,  10.  ,  12.  ,  14.  ,  -4.25],</span>
+<span class="sd">           [  4.  ,   1.  ,  -0.25,  -2.  ,  -4.25, -32.  ]])</span>
+<span class="sd">    &gt;&gt;&gt; laplace(np.ravel(A)).reshape(5,6)</span>
+<span class="sd">    array([[   2.125,    4.25 ,    2.25 ,   -3.75 ,  -13.75 ,  -32.25 ],</span>
+<span class="sd">           [   4.25 ,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -1.875],</span>
+<span class="sd">           [   4.125,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -3.75 ],</span>
+<span class="sd">           [   3.75 ,    4.25 ,    4.25 ,    4.25 ,    4.25 ,   -5.875],</span>
+<span class="sd">           [ -46.875,  -67.75 ,  -93.75 , -123.75 , -157.75 , -208.25 ]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># it stops being useful at all at this point</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">s</span> <span class="o">&lt;</span> <span class="n">points</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Shape&#39;s dims must have at least as many &quot;</span>
+                         <span class="s">&quot;points as central difference weights.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">step</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Shape and step must have same ndims (length).&quot;</span><span class="p">)</span>
+
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">**</span> <span class="n">derivative</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">step</span><span class="p">)</span>
+
+    <span class="c"># reverses the order of the weights to compensate for convolution&#39;s</span>
+    <span class="c"># &quot;flipped&quot; shift</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">central_diff_weights</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c"># create a kernel with ndim specified by shape, each of length points</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+    <span class="c"># slice that gets the center values along first dimension</span>
+    <span class="n">slc</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">points</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c"># fill in kernel along the center of each dimension</span>
+    <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">step</span><span class="p">:</span>
+        <span class="n">kernel</span><span class="p">[</span><span class="n">slc</span><span class="p">[</span><span class="o">-</span><span class="n">dim</span><span class="p">:]</span> <span class="o">+</span> <span class="n">slc</span><span class="p">[:</span><span class="o">-</span><span class="n">dim</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">weights</span> <span class="o">/</span> <span class="n">s</span>
+
+    <span class="k">return</span> <span class="n">convolve</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Matrix Operators &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Convolution Operators" href="convolution.html" />
+    <link rel="prev" title="Tests" href="../api/tests.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="convolution.html" title="Convolution Operators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../api/tests.html" title="Tests"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyop.operators.matrix_operators">
+<span id="matrix-operators"></span><h1>Matrix Operators<a class="headerlink" href="#module-pyop.operators.matrix_operators" title="Permalink to this headline">¶</a></h1>
+<p>The operators specified in this module act like their matrix equivalent,
+and attempt to match tbe basic building blocks in NumPy and other numerical
+packages.</p>
+<dl class="function">
+<dt id="pyop.operators.matrix_operators.diag">
+<tt class="descname">diag</tt><big>(</big><em>v</em><big>)</big><a class="reference internal" href="../_modules/pyop/operators/matrix_operators.html#diag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.operators.matrix_operators.diag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a LinearOperator that emulates a diagonal matrix.</p>
+<p>Creates a LinearOperator that scales each row of its input by the
+corresponding element of the input vector v. The length of the vector v
+defines the shape of the operator (n by n).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>v</strong> : 1-D array</p>
+<blockquote>
+<div><p>An array by which to scale each of rows of the input.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>A LinearOperator that scales np.array inputs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.zeros" title="pyop.operators.matrix_operators.zeros"><tt class="xref py py-obj docutils literal"><span class="pre">zeros</span></tt></a></dt>
+<dd>Matrix free version of the zeros matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.ones" title="pyop.operators.matrix_operators.ones"><tt class="xref py py-obj docutils literal"><span class="pre">ones</span></tt></a></dt>
+<dd>Matrix free version of the ones matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.eye" title="pyop.operators.matrix_operators.eye"><tt class="xref py py-obj docutils literal"><span class="pre">eye</span></tt></a></dt>
+<dd>Matrix free version of the eye matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.select" title="pyop.operators.matrix_operators.select"><tt class="xref py py-obj docutils literal"><span class="pre">select</span></tt></a></dt>
+<dd>Select certain rows out of a matrix.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.operators</span> <span class="kn">import</span> <span class="n">diag</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])))</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  2.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  3.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  4.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.operators.matrix_operators.eye">
+<tt class="descname">eye</tt><big>(</big><em>shape</em><big>)</big><a class="reference internal" href="../_modules/pyop/operators/matrix_operators.html#eye"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.operators.matrix_operators.eye" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyOp version of eye array function (only 2D).</p>
+<p>Returns a new LinearOperator that emulates the identity matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape</strong> : pair</p>
+<blockquote>
+<div><p>The shape of the LinearOperator (if it were a matrix).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>A functional version of numpy.eye()</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.zeros" title="pyop.operators.matrix_operators.zeros"><tt class="xref py py-obj docutils literal"><span class="pre">zeros</span></tt></a></dt>
+<dd>Matrix free version of the zeros matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.ones" title="pyop.operators.matrix_operators.ones"><tt class="xref py py-obj docutils literal"><span class="pre">ones</span></tt></a></dt>
+<dd>Matrix free version of the ones matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.diag" title="pyop.operators.matrix_operators.diag"><tt class="xref py py-obj docutils literal"><span class="pre">diag</span></tt></a></dt>
+<dd>Convert a 1D array to matrix free diagonal matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.select" title="pyop.operators.matrix_operators.select"><tt class="xref py py-obj docutils literal"><span class="pre">select</span></tt></a></dt>
+<dd>Select certain rows out of a matrix.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.operators</span> <span class="kn">import</span> <span class="n">eye</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">eye</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="go">array([[ 1.],</span>
+<span class="go">       [ 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">eye</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+<span class="go">array([[ 1.,  0.],</span>
+<span class="go">       [ 0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.operators.matrix_operators.ones">
+<tt class="descname">ones</tt><big>(</big><em>shape</em><big>)</big><a class="reference internal" href="../_modules/pyop/operators/matrix_operators.html#ones"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.operators.matrix_operators.ones" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyOp version of ones array function (only 2D).</p>
+<p>Returns a new LinearOperator that emulates a matrix filled with ones.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape</strong> : pair</p>
+<blockquote>
+<div><p>The shape of the LinearOperator (if it were a matrix).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>A functional version of numpy.ones()</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.zeros" title="pyop.operators.matrix_operators.zeros"><tt class="xref py py-obj docutils literal"><span class="pre">zeros</span></tt></a></dt>
+<dd>Matrix free version of the zeros matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.eye" title="pyop.operators.matrix_operators.eye"><tt class="xref py py-obj docutils literal"><span class="pre">eye</span></tt></a></dt>
+<dd>Matrix free version of the eye matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.diag" title="pyop.operators.matrix_operators.diag"><tt class="xref py py-obj docutils literal"><span class="pre">diag</span></tt></a></dt>
+<dd>Convert a 1D array to matrix free diagonal matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.select" title="pyop.operators.matrix_operators.select"><tt class="xref py py-obj docutils literal"><span class="pre">select</span></tt></a></dt>
+<dd>Select certain rows out of a matrix.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.operators</span> <span class="kn">import</span> <span class="n">ones</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">ones</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="go">array([[ 1.],</span>
+<span class="go">       [ 1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">ones</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+<span class="go">array([[ 1.,  1.],</span>
+<span class="go">       [ 1.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.operators.matrix_operators.select">
+<tt class="descname">select</tt><big>(</big><em>rows</em>, <em>perm</em><big>)</big><a class="reference internal" href="../_modules/pyop/operators/matrix_operators.html#select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.operators.matrix_operators.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select only certain rows of a matrix.</p>
+<p>This operator selects only certain rows from a matrix. It can be
+particularly useful for consesus or sharing optimization problems.</p>
+<p>The input perm can be in any order, and duplicates can be made. In this
+manner, it is possible to make a permutation matrix by including an
+input that includes each row once and only once.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>rows</strong> : integer</p>
+<blockquote>
+<div><p>The number of total rows to be selected from.</p>
+</div></blockquote>
+<p><strong>perm</strong> : list</p>
+<blockquote>
+<div><p>A list of the rows to take. This will define the shape of the
+resulting LinearOperator.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>A LinearOperator that performs the selection on np.array inputs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.zeros" title="pyop.operators.matrix_operators.zeros"><tt class="xref py py-obj docutils literal"><span class="pre">zeros</span></tt></a></dt>
+<dd>Matrix free version of the zeros matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.ones" title="pyop.operators.matrix_operators.ones"><tt class="xref py py-obj docutils literal"><span class="pre">ones</span></tt></a></dt>
+<dd>Matrix free version of the ones matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.eye" title="pyop.operators.matrix_operators.eye"><tt class="xref py py-obj docutils literal"><span class="pre">eye</span></tt></a></dt>
+<dd>Matrix free version of the eye matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.diag" title="pyop.operators.matrix_operators.diag"><tt class="xref py py-obj docutils literal"><span class="pre">diag</span></tt></a></dt>
+<dd>Convert a 1D array to matrix free diagonal matrix.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.operators</span> <span class="kn">import</span> <span class="n">select</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+<span class="go">array([1, 2, 4])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+<span class="go">array([1, 2, 2])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.operators.matrix_operators.zeros">
+<tt class="descname">zeros</tt><big>(</big><em>shape</em><big>)</big><a class="reference internal" href="../_modules/pyop/operators/matrix_operators.html#zeros"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.operators.matrix_operators.zeros" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyOp version of zeros array function (only 2D).</p>
+<p>Returns a new LinearOperator that emulates a matrix filled with zeros.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape</strong> : pair</p>
+<blockquote>
+<div><p>The shape of the LinearOperator (if it were a matrix).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>A functional version of numpy.zeros()</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.ones" title="pyop.operators.matrix_operators.ones"><tt class="xref py py-obj docutils literal"><span class="pre">ones</span></tt></a></dt>
+<dd>Matrix free version of the ones matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.eye" title="pyop.operators.matrix_operators.eye"><tt class="xref py py-obj docutils literal"><span class="pre">eye</span></tt></a></dt>
+<dd>Matrix free version of the eye matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.diag" title="pyop.operators.matrix_operators.diag"><tt class="xref py py-obj docutils literal"><span class="pre">diag</span></tt></a></dt>
+<dd>Convert a 1D array to matrix free diagonal matrix.</dd>
+<dt><a class="reference internal" href="#pyop.operators.matrix_operators.select" title="pyop.operators.matrix_operators.select"><tt class="xref py py-obj docutils literal"><span class="pre">select</span></tt></a></dt>
+<dd>Select certain rows out of a matrix.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.operators</span> <span class="kn">import</span> <span class="n">zeros</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="go">array([[ 0.],</span>
+<span class="go">       [ 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">zeros</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+<span class="go">array([[ 0.,  0.],</span>
+<span class="go">       [ 0.,  0.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/tests.html">Tests</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/operators/matrix_operators.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

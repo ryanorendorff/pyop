@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Operator Rules &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="PyOp Motivation" href="motivation.html" />
+    <link rel="prev" title="Linear Operator Tutorial" href="linop.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="motivation.html" title="PyOp Motivation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="linop.html" title="Linear Operator Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="operator-rules">
+<h1>Operator Rules<a class="headerlink" href="#operator-rules" title="Permalink to this headline">¶</a></h1>
+<p>The most basic form of a <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> takes in a shape
+defining the operation and a function (called the forward function) that
+operators on only one input. However, certain operators are practically
+useless.</p>
+<div class="highlight-python"><div class="highlight"><pre>A = LinearOperator((4, 4), lambda x: array([0, 2, 0, 0])
+A(array([1, 1, 1, 1])) # The result is probably not what you wanted.
+</pre></div>
+</div>
+<p>While the <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> cannot automatically determine
+non-linear or bogus forward functions (or at least not easily), it does
+perform the following checks when the <tt class="docutils literal"><span class="pre">call</span></tt> method is used.</p>
+<ul class="simple">
+<li>both the operator and the input have a shape attribute,</li>
+<li>the inner dimensions of the operator and the input match, and</li>
+<li>the return of the forward function matches the expected dimensions
+(the outer dimensions).</li>
+</ul>
+<dl class="docutils">
+<dt>Therefore, it is impossible to use the following operators due to the checks.</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s">&quot;Hinc lucem et pocula sacra.&quot;</span><span class="p">)</span>
+<span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s">&quot;Pax et Lux.&quot;</span><span class="p">)</span>
+<span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Similarly, the following will be rejected because only positive pair shapes
+make sense, as they define a mapping from one finite dimension (the domain)
+to another (the codomain).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Even though there is no automatic way to determine if an operator provides
+a correct (or linear) function&#8211;at least without intense lexical analyzing
+that could solve only the most basic of cases&#8211;adhering to the following
+rules will help ensure that an operator is functioning properly.</p>
+<div class="section" id="the-rules">
+<h2>The Rules<a class="headerlink" href="#the-rules" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first"><a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances are nearly useless without an
+adjoint function. While it is not required, it becomes impossible to
+perform calculations such as an eigenvalue decomposition without an
+adjoint, as well as any first order convex optimization solver.</p>
+</li>
+<li><p class="first">For <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances that have an adjoint
+function defined, they should pass the <a class="reference internal" href="../api/tests.html#pyop.tests.adjointTest" title="pyop.tests.adjointTest"><tt class="xref py py-func docutils literal"><span class="pre">adjointTest()</span></tt></a>.
+This is a basic check that the forward and adjoint are indeed are each
+other&#8217;s &#8220;opposites&#8221;, although it does not guarantee that the operator is
+defined correctly.</p>
+</li>
+<li><p class="first">If there is a reference operation (such as a matrix), check that the
+function output matches the reference. While an operator that passes the
+adjoint test is usually doing what you expect, this is not always the
+case (defining the convolution operator is an example where an adjoint
+test can easily pass without defining the correct operator).</p>
+</li>
+<li><p class="first">Forward and adjoint functions that are defined on NumPy arrays should
+respect the dimensionality of their input. This means that 1D inputs
+should result in 1D outputs, and 2D inputs should lead to 2D outputs.
+This follows the way that many NumPy functions are styled.</p>
+</li>
+<li><p class="first">Forward and adjoint functions should be defined to work on 2D array inputs
+when the inputs are NumPy arrays. This is to say that the functions
+should be defined as matrix-matrix multiplications instead of
+matrix-vector multiplications, for example. This allows for
+the <a class="reference internal" href="../api/convert.html#pyop.convert.toMatrix" title="pyop.convert.toMatrix"><tt class="xref py py-func docutils literal"><span class="pre">toMatrix()</span></tt></a> function to work, which is
+helpful for turning an operator into its matrix form for further
+manipulation (for example, factorization or low rank approximations).
+<a class="reference internal" href="../api/convert.html#pyop.convert.toMatrix" title="pyop.convert.toMatrix"><tt class="xref py py-func docutils literal"><span class="pre">toMatrix()</span></tt></a> even works on operators that are created
+out of any of the composition or combining tools, as long as all the
+functions are defined as matrix-matrix multiplies.</p>
+</li>
+<li><p class="first">Do not make operator functions that hold state. Since the forward
+and adjoint functions can be anything that implements <tt class="docutils literal"><span class="pre">call</span></tt>, they
+can be functions, closures, or classes. All of these can contain state,
+but doing so breaks the immutable flavour of the operator and makes
+understanding the code more difficult. For example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">*=</span> <span class="n">x</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<span class="n">A</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+<span class="c">## These two sequences lead to different results for the</span>
+<span class="c">## second statement.</span>
+<span class="n">A</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
+<span class="n">A</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+
+<span class="n">A</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
+<span class="n">A</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>In other words, the forward and adjoint functions, if they are
+to match those of standard linear operator theory, must be <a class="reference external" href="https://en.wikipedia.org/wiki/Pure_function">pure</a> functions.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="tips">
+<h2>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h2>
+<p>Here are some tips for developing operators that come from sometimes painful
+experience.</p>
+<ul class="simple">
+<li>Use IPython for testing, it is quite helpful. :-)</li>
+<li>Define the forward and adjoint functions in a normal namespace before
+putting them inside either a nested function or a class. They are simpler
+to iterate through in this form, while the nested/class form is really
+just a nice (simple) packaging of the result.</li>
+<li>Use the <a class="reference internal" href="../api/utilities.html#module-pyop.utilities" title="pyop.utilities"><tt class="xref py py-mod docutils literal"><span class="pre">utilities</span></tt></a> decorators when possible to ease the
+creation of matrix-matrix functions. These decorators convert vector or
+vectorized (a nD array vectorized) functions to matrix-matrix functions
+and take care of concatenating the results together, flattening along the
+correct dimensions, etc.</li>
+</ul>
+</div>
+<div class="section" id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<p>One thing to note is that these checks do <cite>not</cite> specify the input data
+type. While the input to a <a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> is often a
+NumPy ndarray, it is entirely possible to use any input type that defines
+a shape pair. This could be useful, for example, if the input was a graph
+that was simpler to express and operate on as a <tt class="docutils literal"><span class="pre">Graph</span></tt> type instead of an
+adjacency matrix. This is an (accidental) result of Python&#8217;s duck typing.</p>
+<p><a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances are designed to behave
+in an <cite>immutable</cite> manner, although they are strictly not immutable as
+a determined programmer can always redefine the functions held by a
+<a class="reference internal" href="../api/linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> or modify the instance (or class)
+at runtime. However, in the course of normal programming, they can be
+treated as a non-hashable immutable (I realise the silliness) as all of the
+composition rules create new operators containing the old ones. This means
+that if an operator is given to a function, it will not change after the
+function executes.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Operator Rules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-rules">The Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tips">Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/tutorial/rules.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

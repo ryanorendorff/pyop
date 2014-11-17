@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyOp Motivation &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Linear Operators" href="../api/linop.html" />
+    <link rel="prev" title="Operator Rules" href="rules.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../api/linop.html" title="Linear Operators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rules.html" title="Operator Rules"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyop-motivation">
+<h1>PyOp Motivation<a class="headerlink" href="#pyop-motivation" title="Permalink to this headline">¶</a></h1>
+<p>This section of the tutorial largely discusses linear operators in the context
+of image/signal processing; this is only for convenience of explanation and
+expertise of the authors. At its core, PyOp is intended to be completely
+general.</p>
+<p>Linear systems abound in engineering disciplines such as imaging. Indeed, most
+if not all of the major imaging systems used in the world are linear and
+shift-invariant (LSI). This is not just happenstance &#8211; LSI is a crucial
+feature for efficiency and quantitation of an imaging system and, for example,
+its noise properties.</p>
+<p>There are major ramifications for image reconstruction given LSI properties.
+For example, one popular method for image reconstruction is to solve a
+so-called inverse problem.  If a system is LSI, it can always be described with
+the notation <cite>y = Ax</cite> where <cite>y</cite> is the output of the system and <cite>A</cite>
+characterizes all of the linear transformations associated with the system.
+These could include the fundamental physics of the modality, signal processing
+steps, and the particulars of the scanning sequence. To recover the image <cite>x</cite>,
+we must invert this system.</p>
+<p>In practice, <cite>A</cite> is the composition of many linear transformations or
+constructed from block components, and it is often these different
+sub-components that one can formulate. For example, we often have</p>
+<div class="math">
+\[\begin{split}A = A_1 A_2 \dots A_N \\
+A = \begin{bmatrix} A_1 &amp; A_2 \\ A_3 &amp; A_4 \end{bmatrix}\end{split}\]</div>
+<p>or a combination these. As long as we can define each of these sub-components,
+composition or blocking of linear operators is straightforward.  In our image
+reconstruction problem, we can then find the solution to the inverse problem
+to reconstruct an image:</p>
+<div class="math">
+\[\min_x ~~ \left \Vert Ax - y \right \Vert_2\]</div>
+<p>In general, this problem has an analytical solution given by:</p>
+<div class="math">
+\[\hat{x} = A^{\dagger} y\]</div>
+<p>where <span class="math">\(A^{\dagger}\)</span> is the Moore-Penrose inverse of <cite>A</cite>. For
+ill-conditioned problems, we may add Tikhonov regularization:</p>
+<div class="math">
+\[\min_x ~~ \left \Vert Ax - y \right \Vert_2 + \sqrt{\lambda} \left \Vert
+x \right \Vert_2\]</div>
+<p>which has the analytical solution:</p>
+<div class="math">
+\[\hat{x} = (A^\top A + \lambda I)^{-1} A^\top y\]</div>
+<p>We may also want to incorporate <em>a priori</em> information such as positivity of
+the image <cite>x</cite> leading to a convex optimization formulation:</p>
+<div class="math">
+\[\begin{split}\min_x ~~&amp; \left \Vert Ax - y \right \Vert_2^2 \\
+\mathrm{s.t.} ~~&amp; x \succeq 0\end{split}\]</div>
+<p>which has no analytical solution.</p>
+<p>Often, <cite>A</cite> and the subcomponents are defined in terms of matrices. When this is
+possible and easy, then formulating and solving the reconstruction problem is
+very straightforward.  However, in some applications, including image
+reconstruction, the matrix form (even when sparse and stored accordingly) can
+be too big to fit in memory and/or cause cache thrashing issues. In these
+cases, &#8220;matrix-free&#8221; methods become much more attractive, if not necessary.</p>
+<p>A matrix is only one way of representing a linear transformation. In the most
+general case, a linear transformation need only have some functional
+representation for its forward operation. However the adjoint operation is
+often just as necessary.  When we encapsulate these operations in the form of a
+function, we can store this information on the order of kB of memory as opposed
+to the GBs needed for large matrices.</p>
+<p>Considering the image reconstruction problems described above, when couched as
+a convex optimization problem, gradient descent or other methods can be used to
+solve the reconstruction problem using only the forward and adjoint operations
+(compared to the analytical solutions which require an inverse).</p>
+<p>In general, when using linear operators, we need to be able to properly
+formulate the forward and adjoint operations and accommodate various forms of
+the operator depending on the specific context (e.g., matrix vs. functional).
+PyOp is designed to give users the flexibility to seamlessly create, compose,
+and use linear operators defined as dense matrices, sparse matrices, in
+functional form, or any arbitrary mix.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rules.html">Operator Rules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/tutorial/motivation.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

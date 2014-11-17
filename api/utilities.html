@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Convenient Decorators &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Converting LinearOperators" href="convert.html" />
+    <link rel="prev" title="Linear Operators" href="linop.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="convert.html" title="Converting LinearOperators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="linop.html" title="Linear Operators"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyop.utilities">
+<span id="convenient-decorators"></span><h1>Convenient Decorators<a class="headerlink" href="#module-pyop.utilities" title="Permalink to this headline">¶</a></h1>
+<p>Often, certain forward and adjoint functions are simpler to define as a
+matrix-matrix multiplication or to operate on a reshape version of the
+input. The decorators defined here allow for functions of these forms to be
+modified to matrix-matrix functions easily. The examples for each decorator
+give a good sample of how to use such functions.</p>
+<dl class="function">
+<dt id="pyop.utilities.matmat">
+<tt class="descname">matmat</tt><big>(</big><em>f</em><big>)</big><a class="reference internal" href="../_modules/pyop/utilities.html#matmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.utilities.matmat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert 1D array to 2D column and back to 1D after calculation.</p>
+<p>This function is meant to work only with functions following the
+<a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> calling declaration, which is a function taking
+in only one argument, the data to work on.</p>
+<p>If the function receives a sparse input, then this wrapper does nothing
+since a sparse matrix cannot be squeeze or reshaped without significant
+alterations in its structure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>f</strong> : function</p>
+<blockquote>
+<div><p>The function that is programmed to operate on arrays of two
+dimensions.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">function</p>
+<blockquote class="last">
+<div><p>A function that ensures the input data is at least 2 dimensional and
+that the result is a 1D array if the input was also 1D.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.utilities.matvec" title="pyop.utilities.matvec"><tt class="xref py py-obj docutils literal"><span class="pre">matvec</span></tt></a></dt>
+<dd>Defines a matrix-matrix( function from matrix-matvec.</dd>
+<dt><a class="reference internal" href="#pyop.utilities.matvectorized" title="pyop.utilities.matvectorized"><tt class="xref py py-obj docutils literal"><span class="pre">matvectorized</span></tt></a></dt>
+<dd>Like matvec but reshapes the input automatically.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">LinearOperator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">squareEye</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c">#</span>
+<span class="gp">... </span>    <span class="nd">@matmat</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">x</span>
+<span class="gp">... </span>    <span class="c">#</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">),</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="o">=</span> <span class="n">squareEye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">array([0, 1, 2, 3])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.utilities.matvec">
+<tt class="descname">matvec</tt><big>(</big><em>f</em><big>)</big><a class="reference internal" href="../_modules/pyop/utilities.html#matvec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.utilities.matvec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operates on an input matrix one column at a time.</p>
+<p>A function that implements a matrix-matrix function from a matrix-
+vector function. This decorator takes an input matrix, feeds each column
+as a 1D array to the function f, and then combines the results.</p>
+<p>Often it is more natural to define matrix-vector function, since the
+matrix-matrix function is just the collection of the matrix-vector
+function applied to each column of the input. For these cases, use this
+decorator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>f</strong> : function with arguments (x)</p>
+<blockquote>
+<div><p>The function that implements a matrix-vector product.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">function</p>
+<blockquote class="last">
+<div><p>A function that implements a matrix-matrix function.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.utilities.matmat" title="pyop.utilities.matmat"><tt class="xref py py-obj docutils literal"><span class="pre">matmat</span></tt></a></dt>
+<dd>ensures the input to a function is 2 dimensional.</dd>
+<dt><a class="reference internal" href="#pyop.utilities.matvectorized" title="pyop.utilities.matvectorized"><tt class="xref py py-obj docutils literal"><span class="pre">matvectorized</span></tt></a></dt>
+<dd>Like matvec but reshapes the input automatically.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">matvec</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@matvec</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">multFirstColumn</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">img</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">order</span> <span class="o">=</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">img</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">multFirstColumn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="go">array([[2, 4],</span>
+<span class="go">       [1, 1],</span>
+<span class="go">       [2, 4],</span>
+<span class="go">       [1, 1]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.utilities.matvectorized">
+<tt class="descname">matvectorized</tt><big>(</big><em>shape</em>, <em>order='C'</em><big>)</big><a class="reference internal" href="../_modules/pyop/utilities.html#matvectorized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.utilities.matvectorized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to turn a function on a matrix into matrix-matrix product.</p>
+<p>This decorator is an extension of matvec. It operates on each column
+of a matrix at a time, but before passing the column to the decorated
+function, matvectorized reshapes the column based on the dimensions and
+order supplied into a nD array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape</strong> : tuple</p>
+<blockquote>
+<div><p>The shape of the data in non-matvec form.</p>
+</div></blockquote>
+<p><strong>order = {&#8216;C&#8217;, &#8216;F&#8217;, &#8216;A&#8217;}, optional</strong></p>
+<blockquote>
+<div><p>The order by which the matvecized image is reshaped. This is the
+same parameter as given to functions like numpy.reshape. For a
+discussion of the memory efficiency of different orders and how that
+is determined by the underlying format, see the documentation of
+commands that take an order argument.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">function</p>
+<blockquote class="last">
+<div><p>A function that can be used to decorate another function.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.utilities.matmat" title="pyop.utilities.matmat"><tt class="xref py py-obj docutils literal"><span class="pre">matmat</span></tt></a></dt>
+<dd>ensures the input to a function is 2 dimensional.</dd>
+<dt><a class="reference internal" href="#pyop.utilities.matvec" title="pyop.utilities.matvec"><tt class="xref py py-obj docutils literal"><span class="pre">matvec</span></tt></a></dt>
+<dd>Like matvectorized but does not reshapes the input.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">matvectorized</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@matvectorized</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">multFirstColumn</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">img</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">img</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">multFirstColumn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="go">array([[2, 4],</span>
+<span class="go">       [1, 1],</span>
+<span class="go">       [2, 4],</span>
+<span class="go">       [1, 1]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linop.html">Linear Operators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/api/utilities.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

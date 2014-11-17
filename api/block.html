@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Blocks &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Tests" href="tests.html" />
+    <link rel="prev" title="Converting LinearOperators" href="convert.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tests.html" title="Tests"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="convert.html" title="Converting LinearOperators"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyop.block">
+<span id="blocks"></span><h1>Blocks<a class="headerlink" href="#module-pyop.block" title="Permalink to this headline">¶</a></h1>
+<p>In practice, <a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances composed of distinct
+sub-blocks are common. In general, access to both the constituent operators and
+larger operators is desired.  The <a class="reference internal" href="#module-pyop.block" title="pyop.block"><tt class="xref py py-mod docutils literal"><span class="pre">block</span></tt></a> module provides several
+functions to help build block instances of <a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a>
+from simpler components.</p>
+<p><a class="reference internal" href="#pyop.block.hstack" title="pyop.block.hstack"><tt class="xref py py-func docutils literal"><span class="pre">hstack()</span></tt></a> and <a class="reference internal" href="#pyop.block.vstack" title="pyop.block.vstack"><tt class="xref py py-func docutils literal"><span class="pre">vstack()</span></tt></a> are the workhorses
+of <a class="reference internal" href="#module-pyop.block" title="pyop.block"><tt class="xref py py-mod docutils literal"><span class="pre">block</span></tt></a> and are analogous to their numpy counterparts. These
+functions can be used alone to squash a row or column of
+<a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances, respectively, into a single
+<a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instance. These functions expect a
+list of <a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances as input.</p>
+<p><a class="reference internal" href="#pyop.block.bmat" title="pyop.block.bmat"><tt class="xref py py-func docutils literal"><span class="pre">bmat()</span></tt></a> is the generic block-builder, and takes in a
+list of lists of <a class="reference internal" href="linop.html#pyop.linop.LinearOperator" title="pyop.linop.LinearOperator"><tt class="xref py py-class docutils literal"><span class="pre">LinearOperator</span></tt></a> instances and returns
+a single block operator. <a class="reference internal" href="#pyop.block.bmat" title="pyop.block.bmat"><tt class="xref py py-func docutils literal"><span class="pre">bmat()</span></tt></a> assumes the list of
+lists is in row-major order.</p>
+<p><a class="reference internal" href="#pyop.block.blockDiag" title="pyop.block.blockDiag"><tt class="xref py py-func docutils literal"><span class="pre">blockDiag()</span></tt></a> allows for easy creation of common block
+diagonal operators, given a list of the diagonal component operators.</p>
+<div class="math">
+\[\begin{split}E = \begin{bmatrix} A &amp; B \\ C &amp; D \end{bmatrix}\end{split}\]</div>
+<p>We can easily build <span class="math">\(E\)</span> or just its rows and columns using
+<a class="reference internal" href="#module-pyop.block" title="pyop.block"><tt class="xref py py-mod docutils literal"><span class="pre">block</span></tt></a> functions.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">A</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">adjoint</span><span class="p">)</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">adjoint</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">adjoint</span><span class="p">)</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">15</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">forward</span><span class="p">,</span> <span class="n">adjoint</span><span class="p">)</span>
+
+<span class="n">row1</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">])</span>
+<span class="n">row2</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">])</span>
+
+<span class="n">col1</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+<span class="n">col2</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">([</span><span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">])</span>
+
+<span class="n">E1</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">([</span><span class="n">row1</span><span class="p">,</span> <span class="n">row2</span><span class="p">])</span>
+<span class="n">E2</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">])</span>
+<span class="n">E3</span> <span class="o">=</span> <span class="n">bmat</span><span class="p">([[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">],</span> <span class="p">[</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>In this example, <cite>E1</cite>, <cite>E2</cite>, and <cite>E3</cite> are equivalent.</p>
+<p>We can also easily make block diagonal operators with
+<a class="reference internal" href="#pyop.block.blockDiag" title="pyop.block.blockDiag"><tt class="xref py py-func docutils literal"><span class="pre">blockDiag()</span></tt></a>:</p>
+<div class="math">
+\[\begin{split}D = \begin{bmatrix} A &amp; \mathbf{0} &amp; \mathbf{0} \\ \mathbf{0} &amp; B &amp;
+\mathbf{0} \\ \mathbf{0} &amp; \mathbf{0} &amp; C \end{bmatrix}\end{split}\]</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">A</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">(</span><span class="n">op_shape1</span><span class="p">,</span> <span class="n">forward1</span><span class="p">,</span> <span class="n">adjoint1</span><span class="p">)</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">(</span><span class="n">op_shape2</span><span class="p">,</span> <span class="n">forward2</span><span class="p">,</span> <span class="n">adjoint2</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">(</span><span class="n">op_shape3</span><span class="p">,</span> <span class="n">forward3</span><span class="p">,</span> <span class="n">adjoint3</span><span class="p">)</span>
+
+<span class="n">D</span> <span class="o">=</span> <span class="n">blockDiag</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="pyop.block.blockDiag">
+<tt class="descname">blockDiag</tt><big>(</big><em>blocks</em><big>)</big><a class="reference internal" href="../_modules/pyop/block.html#blockDiag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.block.blockDiag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a list of operators into a new operator.</p>
+<p>The new operator is composed of diagonal blocks described by the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>blocks</strong> : [LinearOperator]</p>
+<blockquote>
+<div><p>A list of LinearOperator objects.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>The new block operator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.block.bmat" title="pyop.block.bmat"><tt class="xref py py-obj docutils literal"><span class="pre">bmat</span></tt></a></dt>
+<dd>Construct a LinearOperator from LinearOperator subcomponents.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.block</span> <span class="kn">import</span> <span class="n">blockDiag</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toLinearOperator</span><span class="p">,</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">],</span> <span class="p">[</span><span class="mf">7.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">blockDiag</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+<span class="go">array([[ 1.,  2.,  0.,  0.],</span>
+<span class="go">       [ 3.,  4.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  5.,  6.],</span>
+<span class="go">       [ 0.,  0.,  7.,  8.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.block.bmat">
+<tt class="descname">bmat</tt><big>(</big><em>blocks</em><big>)</big><a class="reference internal" href="../_modules/pyop/block.html#bmat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.block.bmat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a list of lists into a new operator.</p>
+<p>The new operator is composed of blocks described by the list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>blocks</strong> : [[LinearOperator]]</p>
+<blockquote>
+<div><p>A list of lists, with each base component a linear operator (objects
+instantiated from the LinearOperator class).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>The new block operator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.block.blockDiag" title="pyop.block.blockDiag"><tt class="xref py py-obj docutils literal"><span class="pre">blockDiag</span></tt></a></dt>
+<dd>Construct a LinearOperator from block diagonal components.</dd>
+<dt><a class="reference internal" href="#pyop.block.hstack" title="pyop.block.hstack"><tt class="xref py py-obj docutils literal"><span class="pre">hstack</span></tt></a></dt>
+<dd>Squash a row of LinearOperators to a single block LinearOperator.</dd>
+<dt><a class="reference internal" href="#pyop.block.vstack" title="pyop.block.vstack"><tt class="xref py py-obj docutils literal"><span class="pre">vstack</span></tt></a></dt>
+<dd>Squash a column of LinearOperators to a single block LinearOperator.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toLinearOperator</span><span class="p">,</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.block</span> <span class="kn">import</span> <span class="n">bmat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">6.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">,</span> <span class="mf">9.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blocks</span> <span class="o">=</span> <span class="p">[[</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">],</span> <span class="p">[</span><span class="n">C</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">D</span> <span class="o">=</span> <span class="n">bmat</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+<span class="go">array([[ 1.,  2.,  3.,  0.],</span>
+<span class="go">       [ 0.,  4.,  5.,  0.],</span>
+<span class="go">       [ 6.,  0.,  0.,  7.],</span>
+<span class="go">       [ 0.,  8.,  9.,  0.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.block.hstack">
+<tt class="descname">hstack</tt><big>(</big><em>blocks</em><big>)</big><a class="reference internal" href="../_modules/pyop/block.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.block.hstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts list of operators into one operator.</p>
+<p>The new operator is created assuming the list corresponds to a row of
+blocks in a larger block matrix-like operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>blocks</strong> : [LinearOperator]</p>
+<blockquote>
+<div><p>A list of LinearOperator objects.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>The new block operator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.block.vstack" title="pyop.block.vstack"><tt class="xref py py-obj docutils literal"><span class="pre">vstack</span></tt></a></dt>
+<dd>Squash a column of LinearOperators to a single block LinearOperator.</dd>
+<dt><a class="reference internal" href="#pyop.block.bmat" title="pyop.block.bmat"><tt class="xref py py-obj docutils literal"><span class="pre">bmat</span></tt></a></dt>
+<dd>Construct a LinearOperator from LinearOperator subcomponents.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.block</span> <span class="kn">import</span> <span class="n">hstack</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toLinearOperator</span><span class="p">,</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">3.</span><span class="p">],</span> <span class="p">[</span><span class="mf">6.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+<span class="go">array([[ 1.,  2.,  3.],</span>
+<span class="go">       [ 4.,  5.,  6.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop.block.vstack">
+<tt class="descname">vstack</tt><big>(</big><em>blocks</em><big>)</big><a class="reference internal" href="../_modules/pyop/block.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.block.vstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts list of operators into one operator.</p>
+<p>The new operator is created assuming the list corresponds to a column of
+blocks in a larger block matrix-like operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>blocks</strong> : [LinearOperator]</p>
+<blockquote>
+<div><p>A list of LinearOperator objects.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote class="last">
+<div><p>The new block operator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyop.block.hstack" title="pyop.block.hstack"><tt class="xref py py-obj docutils literal"><span class="pre">hstack</span></tt></a></dt>
+<dd>Squash a row of LinearOperators to a single block LinearOperator.</dd>
+<dt><a class="reference internal" href="#pyop.block.bmat" title="pyop.block.bmat"><tt class="xref py py-obj docutils literal"><span class="pre">bmat</span></tt></a></dt>
+<dd>Construct a LinearOperator from LinearOperator subcomponents.</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop.block</span> <span class="kn">import</span> <span class="n">vstack</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">toLinearOperator</span><span class="p">,</span> <span class="n">toMatrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">toLinearOperator</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">toMatrix</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+<span class="go">array([[ 1.,  4.],</span>
+<span class="go">       [ 2.,  5.],</span>
+<span class="go">       [ 3.,  6.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/api/block.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

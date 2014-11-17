@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Linear Operators &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Convenient Decorators" href="utilities.html" />
+    <link rel="prev" title="PyOp Motivation" href="../tutorial/motivation.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utilities.html" title="Convenient Decorators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../tutorial/motivation.html" title="PyOp Motivation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyop.linop">
+<span id="linear-operators"></span><h1>Linear Operators<a class="headerlink" href="#module-pyop.linop" title="Permalink to this headline">¶</a></h1>
+<p>There is only one class for creating a Linear Operator. Its constructor
+takes in the shape of the operator if it were a matrix (or equivalently the
+dimensions of the input and output of the function) and a forward function.
+An adjoint function is not defined by default, but they are required for
+many algorithms.</p>
+<p>To test if a <tt class="docutils literal"><span class="pre">LinearOperator</span></tt> is correctly implemented (that the
+adjoint and forward functions are correct), it is helpful to use the
+<a class="reference internal" href="tests.html#pyop.tests.adjointTest" title="pyop.tests.adjointTest"><tt class="xref py py-func docutils literal"><span class="pre">adjointTest()</span></tt></a> and <a class="reference internal" href="convert.html#pyop.convert.toMatrix" title="pyop.convert.toMatrix"><tt class="xref py py-func docutils literal"><span class="pre">toMatrix()</span></tt></a> functions defined
+in PyOp.</p>
+<p>The following operators are defined on Linear Operators <tt class="docutils literal"><span class="pre">A</span></tt> and
+<tt class="docutils literal"><span class="pre">B</span></tt>.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">+A</span></tt>, <tt class="docutils literal"><span class="pre">-A</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">2*A</span></tt>, <tt class="docutils literal"><span class="pre">A*2</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">A**2</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">A</span> <span class="pre">+</span> <span class="pre">B</span></tt>, <tt class="docutils literal"><span class="pre">A</span> <span class="pre">-</span> <span class="pre">B</span></tt>, <tt class="docutils literal"><span class="pre">A</span> <span class="pre">*</span> <span class="pre">B</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">A</span> <span class="pre">==</span> <span class="pre">B</span></tt>, <tt class="docutils literal"><span class="pre">A</span> <span class="pre">!=</span> <span class="pre">B</span></tt></li>
+</ul>
+<p>The following are all valid ways to call/apply the operator on an input
+<tt class="docutils literal"><span class="pre">x</span></tt>.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">A(x)</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">A.dot(x)</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">A*x</span></tt></li>
+</ul>
+<p><tt class="docutils literal"><span class="pre">LinearOperators</span></tt> also define the string method, and can be directly
+used with <tt class="docutils literal"><span class="pre">str</span></tt>.</p>
+<dl class="class">
+<dt id="pyop.linop.LinearOperator">
+<em class="property">class </em><tt class="descname">LinearOperator</tt><big>(</big><em>shape</em>, <em>forward</em>, <em>adjoint=None</em><big>)</big><a class="reference internal" href="../_modules/pyop/linop.html#LinearOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.linop.LinearOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>LinearOperators for performing transformations without matrices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>shape</strong> : tuple</p>
+<blockquote>
+<div><p>a two element tuple describing the number of rows/columns this
+operator represents if it were in matrix form.</p>
+</div></blockquote>
+<p><strong>forward</strong> : function</p>
+<blockquote>
+<div><p>the functional representation of a linear transform.</p>
+</div></blockquote>
+<p><strong>adjoint</strong> : function, optional</p>
+<blockquote class="last">
+<div><p>the adjoint of a linear transformation in functional form.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">identity</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">identity</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]))</span>
+<span class="go">array([1, 2, 3, 4])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">identity</span> <span class="o">=</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">identity</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]))</span>
+<span class="go">array([1, 2, 3, 4])</span>
+</pre></div>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="5%" />
+<col width="95%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>shape</td>
+<td>(int, int) a pair representing the rows/columns of this transformation, if it were in matrix form.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="attribute">
+<dt id="pyop.linop.LinearOperator.T">
+<tt class="descname">T</tt><a class="reference internal" href="../_modules/pyop/linop.html#LinearOperator.T"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.linop.LinearOperator.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides the transpose of the current operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">LinearOperator</p>
+<blockquote>
+<div><p>the transpose of the current operator.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>MissingAdjoint</strong></p>
+<blockquote class="last">
+<div><p>if the transpose function of the original operator was not
+defined.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop.linop.LinearOperator.dot">
+<tt class="descname">dot</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="../_modules/pyop/linop.html#LinearOperator.dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyop.linop.LinearOperator.dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the application of a LinearOperator to an input.</p>
+<p>For a <tt class="docutils literal"><span class="pre">LinearOperator</span></tt> <tt class="docutils literal"><span class="pre">A</span></tt>, the following are the same:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">A</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The reason for having two calling conventions is that <tt class="docutils literal"><span class="pre">arrays</span></tt>
+have the <tt class="docutils literal"><span class="pre">dot</span></tt> function, but not <tt class="docutils literal"><span class="pre">__call__</span></tt> (or at least not
+with the same intentions). Having <tt class="docutils literal"><span class="pre">dot</span></tt> allows for functions to be
+written that are agnostic to their input, such that the input could
+be either a <tt class="docutils literal"><span class="pre">LinearOperator</span></tt> or an <tt class="docutils literal"><span class="pre">array</span></tt>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="../_sources/api/linop.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

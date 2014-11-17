@@ -1,0 +1,481 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyop.block &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyOp 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyop.block</h1><div class="highlight"><pre>
+<span class="sd">r&#39;&#39;&#39;</span>
+<span class="sd">In practice, :class:`~pyop.linop.LinearOperator` instances composed of distinct</span>
+<span class="sd">sub-blocks are common. In general, access to both the constituent operators and</span>
+<span class="sd">larger operators is desired.  The :mod:`~pyop.block` module provides several</span>
+<span class="sd">functions to help build block instances of :class:`~pyop.linop.LinearOperator`</span>
+<span class="sd">from simpler components.</span>
+
+<span class="sd">:func:`~pyop.block.hstack` and :func:`~pyop.block.vstack` are the workhorses</span>
+<span class="sd">of :mod:`~pyop.block` and are analogous to their numpy counterparts. These</span>
+<span class="sd">functions can be used alone to squash a row or column of</span>
+<span class="sd">:class:`~pyop.linop.LinearOperator` instances, respectively, into a single</span>
+<span class="sd">:class:`~pyop.linop.LinearOperator` instance. These functions expect a</span>
+<span class="sd">list of :class:`~pyop.linop.LinearOperator` instances as input.</span>
+
+<span class="sd">:func:`~pyop.block.bmat` is the generic block-builder, and takes in a</span>
+<span class="sd">list of lists of :class:`~pyop.linop.LinearOperator` instances and returns</span>
+<span class="sd">a single block operator. :func:`~pyop.block.bmat` assumes the list of</span>
+<span class="sd">lists is in row-major order.</span>
+
+<span class="sd">:func:`~pyop.block.blockDiag` allows for easy creation of common block</span>
+<span class="sd">diagonal operators, given a list of the diagonal component operators.</span>
+
+<span class="sd">.. math::</span>
+<span class="sd">  E = \begin{bmatrix} A &amp; B \\ C &amp; D \end{bmatrix}</span>
+
+<span class="sd">We can easily build :math:`E` or just its rows and columns using</span>
+<span class="sd">:mod:`~pyop.block` functions. ::</span>
+
+<span class="sd">  A = LinearOperator((10, 12), forward, adjoint)</span>
+<span class="sd">  B = LinearOperator((10, 30), forward, adjoint)</span>
+<span class="sd">  C = LinearOperator((15, 12), forward, adjoint)</span>
+<span class="sd">  D = LinearOperator((15, 30), forward, adjoint)</span>
+
+<span class="sd">  row1 = hstack([A, B])</span>
+<span class="sd">  row2 = hstack([C, D])</span>
+
+<span class="sd">  col1 = vstack([A, C])</span>
+<span class="sd">  col2 = vstack([B, D])</span>
+
+<span class="sd">  E1 = vstack([row1, row2])</span>
+<span class="sd">  E2 = hstack([col1, col2])</span>
+<span class="sd">  E3 = bmat([[A, B], [C, D]])</span>
+
+<span class="sd">In this example, `E1`, `E2`, and `E3` are equivalent.</span>
+
+<span class="sd">We can also easily make block diagonal operators with</span>
+<span class="sd">:func:`~pyop.block.blockDiag`:</span>
+
+<span class="sd">.. math::</span>
+<span class="sd">  D = \begin{bmatrix} A &amp; \mathbf{0} &amp; \mathbf{0} \\ \mathbf{0} &amp; B &amp;</span>
+<span class="sd">  \mathbf{0} \\ \mathbf{0} &amp; \mathbf{0} &amp; C \end{bmatrix}</span>
+
+<span class="sd">::</span>
+
+<span class="sd">  A = LinearOperator(op_shape1, forward1, adjoint1)</span>
+<span class="sd">  B = LinearOperator(op_shape2, forward2, adjoint2)</span>
+<span class="sd">  C = LinearOperator(op_shape3, forward3, adjoint3)</span>
+
+<span class="sd">  D = blockDiag([A, B, C])</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">vsplit</span><span class="p">,</span> <span class="n">vstack</span><span class="p">,</span> <span class="n">tile</span><span class="p">,</span> <span class="n">concatenate</span><span class="p">,</span> <span class="n">cumsum</span><span class="p">,</span> <span class="n">add</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">vstack</span> <span class="k">as</span> <span class="n">npvstack</span>
+<span class="kn">from</span> <span class="nn">pyop</span> <span class="kn">import</span> <span class="n">LinearOperator</span><span class="p">,</span> <span class="n">matmat</span>
+<span class="kn">from</span> <span class="nn">scipy.misc</span> <span class="kn">import</span> <span class="n">doccer</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+
+<span class="n">docdict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;blocks&#39;</span> <span class="p">:</span>
+<span class="sd">&#39;&#39;&#39;blocks : [LinearOperator]</span>
+<span class="sd">    A list of LinearOperator objects.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s">&#39;LinearOperator&#39;</span> <span class="p">:</span>
+<span class="sd">&#39;&#39;&#39;LinearOperator</span>
+<span class="sd">    The new block operator.&#39;&#39;&#39;</span><span class="p">,</span>
+
+    <span class="c">## The see also section.</span>
+    <span class="s">&#39;blockDiag&#39;</span> <span class="p">:</span> <span class="s">&#39;&#39;&#39;blockDiag : Construct a LinearOperator from block</span>
+<span class="s">    diagonal components.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s">&#39;bmat&#39;</span> <span class="p">:</span> <span class="s">&#39;&#39;&#39;bmat : Construct a LinearOperator from LinearOperator</span>
+<span class="s">    subcomponents.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s">&#39;hstack&#39;</span> <span class="p">:</span> <span class="s">&#39;&#39;&#39;hstack : Squash a row of LinearOperators to a single block</span>
+<span class="s">    LinearOperator.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s">&#39;vstack&#39;</span> <span class="p">:</span> <span class="s">&#39;&#39;&#39;vstack : Squash a column of LinearOperators to a single</span>
+<span class="s">    block LinearOperator.&#39;&#39;&#39;</span>
+    <span class="p">}</span>
+
+<span class="n">docfill</span> <span class="o">=</span> <span class="n">doccer</span><span class="o">.</span><span class="n">filldoc</span><span class="p">(</span><span class="n">docdict</span><span class="p">)</span>
+
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="bmat"><a class="viewcode-back" href="../../api/block.html#pyop.block.bmat">[docs]</a><span class="k">def</span> <span class="nf">bmat</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts a list of lists into a new operator.</span>
+
+<span class="sd">    The new operator is composed of blocks described by the list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    blocks : [[LinearOperator]]</span>
+<span class="sd">        A list of lists, with each base component a linear operator (objects</span>
+<span class="sd">        instantiated from the LinearOperator class).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    %(LinearOperator)s</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(blockDiag)s</span>
+<span class="sd">    %(hstack)s</span>
+<span class="sd">    %(vstack)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import toLinearOperator, toMatrix</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.block import bmat</span>
+<span class="sd">    &gt;&gt;&gt; from numpy import array</span>
+<span class="sd">    &gt;&gt;&gt; A = toLinearOperator(array([[1., 2.], [0., 4.]]))</span>
+<span class="sd">    &gt;&gt;&gt; B = toLinearOperator(array([[3., 0.], [5., 0.]]))</span>
+<span class="sd">    &gt;&gt;&gt; C = toLinearOperator(array([[6., 0., 0., 7], [0., 8., 9., 0.]]))</span>
+<span class="sd">    &gt;&gt;&gt; blocks = [[A, B], [C]]</span>
+<span class="sd">    &gt;&gt;&gt; D = bmat(blocks)</span>
+<span class="sd">    &gt;&gt;&gt; toMatrix(D)</span>
+<span class="sd">    array([[ 1.,  2.,  3.,  0.],</span>
+<span class="sd">           [ 0.,  4.,  5.,  0.],</span>
+<span class="sd">           [ 6.,  0.,  0.,  7.],</span>
+<span class="sd">           [ 0.,  8.,  9.,  0.]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Empty list supplied to block operator.&#39;</span><span class="p">)</span>
+
+    <span class="c">## First collapse the rows using horz_cat.</span>
+    <span class="n">vert_block_op</span> <span class="o">=</span> <span class="p">[</span><span class="n">hstack</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]</span>
+    <span class="c">## Next collapse the column into one block operator using vert_cat.</span>
+    <span class="n">block_op</span> <span class="o">=</span> <span class="n">vstack</span><span class="p">(</span><span class="n">vert_block_op</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">block_op</span>
+
+</div>
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="blockDiag"><a class="viewcode-back" href="../../api/block.html#pyop.block.blockDiag">[docs]</a><span class="k">def</span> <span class="nf">blockDiag</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts a list of operators into a new operator.</span>
+
+<span class="sd">    The new operator is composed of diagonal blocks described by the list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(blocks)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    %(LinearOperator)s</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(bmat)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.block import blockDiag</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import toLinearOperator, toMatrix</span>
+<span class="sd">    &gt;&gt;&gt; from numpy import array</span>
+<span class="sd">    &gt;&gt;&gt; A = toLinearOperator(array([[1., 2.], [3., 4.]]))</span>
+<span class="sd">    &gt;&gt;&gt; B = toLinearOperator(array([[5., 6.], [7., 8.]]))</span>
+<span class="sd">    &gt;&gt;&gt; C = blockDiag([A, B])</span>
+<span class="sd">    &gt;&gt;&gt; toMatrix(C)</span>
+<span class="sd">    array([[ 1.,  2.,  0.,  0.],</span>
+<span class="sd">           [ 3.,  4.,  0.,  0.],</span>
+<span class="sd">           [ 0.,  0.,  5.,  6.],</span>
+<span class="sd">           [ 0.,  0.,  7.,  8.]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Empty list supplied to diagonal block operator.&#39;</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+
+    <span class="c">## Generate a list containing the indices to split the vector x</span>
+    <span class="c">## to be sent to each component of the block operator.</span>
+    <span class="n">forward_splitting_idx</span> <span class="o">=</span> <span class="n">cumsum</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">])</span>
+    <span class="n">adjoint_splitting_idx</span> <span class="o">=</span> <span class="n">cumsum</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">])</span>
+
+    <span class="nd">@matmat</span>
+    <span class="k">def</span> <span class="nf">forwardFunction</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+        <span class="c">## Split vector subcomponents on the block operator lengths.</span>
+        <span class="c">## TODO: Rename for general  matrix inputs.</span>
+        <span class="n">vec_components</span> <span class="o">=</span> <span class="n">vsplit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">forward_splitting_idx</span><span class="p">)</span>
+
+        <span class="c">## Apply each operator to corresponding subvector and concatenate</span>
+        <span class="c">## the results.</span>
+        <span class="n">sub_outvecs</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span>
+            <span class="n">vec_components</span><span class="p">))</span>
+
+        <span class="c">## Concatenate the output sub-vectors together.</span>
+        <span class="k">return</span> <span class="n">npvstack</span><span class="p">(</span><span class="n">sub_outvecs</span><span class="p">)</span>
+
+
+    <span class="nd">@matmat</span>
+    <span class="k">def</span> <span class="nf">adjointFunction</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+        <span class="c">## Split vector subcomponents on the block operator lengths.</span>
+        <span class="c">## TODO: Rename for general  matrix inputs.</span>
+        <span class="n">vec_components</span> <span class="o">=</span> <span class="n">vsplit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">adjoint_splitting_idx</span><span class="p">)</span>
+
+        <span class="c">## Apply each operator to corresponding subvector and concatenate</span>
+        <span class="c">## the results.</span>
+        <span class="n">sub_outvecs</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span>
+            <span class="n">vec_components</span><span class="p">))</span>
+
+        <span class="c">## Concatenate the output sub-vectors together.</span>
+        <span class="k">return</span> <span class="n">npvstack</span><span class="p">(</span><span class="n">sub_outvecs</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span>
+            <span class="n">forwardFunction</span><span class="p">,</span>
+            <span class="n">adjointFunction</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">__horzcat</span><span class="p">(</span><span class="n">horz_blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts list of horizontal operators into one linear operator.&#39;&#39;&#39;</span>
+
+    <span class="c">## Generate a list containing the indices to split the vector x</span>
+    <span class="c">## to be sent to each component of the block operator.</span>
+    <span class="n">splitting_idx</span> <span class="o">=</span> <span class="n">cumsum</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">horz_blocks</span><span class="p">])</span>
+
+    <span class="nd">@matmat</span>
+    <span class="k">def</span> <span class="nf">opFunction</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+        <span class="c">## Split vector subcomponents based on the block operator lengths.</span>
+        <span class="c">## TODO: Rename all of these to imply matrix not vector</span>
+        <span class="n">vec_components</span> <span class="o">=</span> <span class="n">vsplit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">splitting_idx</span><span class="p">)</span>
+
+        <span class="c">## Apply each operator to its corresponding subvector and add the</span>
+        <span class="c">## results. Two cases for forward and adjoint functions.</span>
+        <span class="n">sub_outvecs</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">moves</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">horz_blocks</span><span class="p">,</span>
+            <span class="n">vec_components</span><span class="p">))</span>
+
+        <span class="c">## Add the vectors together.</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sub_outvecs</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">opFunction</span>
+
+
+<span class="k">def</span> <span class="nf">__vertcat</span><span class="p">(</span><span class="n">vert_blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts list of vertical operators into one operator.&#39;&#39;&#39;</span>
+
+    <span class="nd">@matmat</span>
+    <span class="k">def</span> <span class="nf">opFunction</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+        <span class="c">## Apply each operator (forward or adjoint) to the input vector to</span>
+        <span class="c">## get output vector sub-components.</span>
+        <span class="n">sub_outvecs</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">vert_blocks</span><span class="p">)</span>
+        <span class="c">## Concatenate the output sub-vectors together.</span>
+        <span class="k">return</span> <span class="n">npvstack</span><span class="p">(</span><span class="n">sub_outvecs</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">opFunction</span>
+
+
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="hstack"><a class="viewcode-back" href="../../api/block.html#pyop.block.hstack">[docs]</a><span class="k">def</span> <span class="nf">hstack</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts list of operators into one operator.</span>
+
+<span class="sd">    The new operator is created assuming the list corresponds to a row of</span>
+<span class="sd">    blocks in a larger block matrix-like operator.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(blocks)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    %(LinearOperator)s</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(vstack)s</span>
+<span class="sd">    %(bmat)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.block import hstack</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import toLinearOperator, toMatrix</span>
+<span class="sd">    &gt;&gt;&gt; from numpy import array</span>
+<span class="sd">    &gt;&gt;&gt; A = toLinearOperator(array([[1., 2.], [4., 5.]]))</span>
+<span class="sd">    &gt;&gt;&gt; B = toLinearOperator(array([[3.], [6.]]))</span>
+<span class="sd">    &gt;&gt;&gt; C = hstack([A, B])</span>
+<span class="sd">    &gt;&gt;&gt; toMatrix(C)</span>
+<span class="sd">    array([[ 1.,  2.,  3.],</span>
+<span class="sd">           [ 4.,  5.,  6.]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Horizontal concatenation of empty list.&#39;</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">rows</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Block operator horizontal concatenation failed: &#39;</span>
+                         <span class="s">&#39;row mismatch.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span>
+            <span class="n">__horzcat</span><span class="p">(</span><span class="n">blocks</span><span class="p">),</span>
+            <span class="n">__vertcat</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]))</span>
+
+</div>
+<span class="nd">@docfill</span>
+<div class="viewcode-block" id="vstack"><a class="viewcode-back" href="../../api/block.html#pyop.block.vstack">[docs]</a><span class="k">def</span> <span class="nf">vstack</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Converts list of operators into one operator.</span>
+
+<span class="sd">    The new operator is created assuming the list corresponds to a column of</span>
+<span class="sd">    blocks in a larger block matrix-like operator.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(blocks)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    %(LinearOperator)s</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    %(hstack)s</span>
+<span class="sd">    %(bmat)s</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pyop.block import vstack</span>
+<span class="sd">    &gt;&gt;&gt; from pyop import toLinearOperator, toMatrix</span>
+<span class="sd">    &gt;&gt;&gt; from numpy import array</span>
+<span class="sd">    &gt;&gt;&gt; A = toLinearOperator(array([[1., 4.], [2., 5.]]))</span>
+<span class="sd">    &gt;&gt;&gt; B = toLinearOperator(array([[3., 6.]]))</span>
+<span class="sd">    &gt;&gt;&gt; C = vstack([A, B])</span>
+<span class="sd">    &gt;&gt;&gt; toMatrix(C)</span>
+<span class="sd">    array([[ 1.,  4.],</span>
+<span class="sd">           [ 2.,  5.],</span>
+<span class="sd">           [ 3.,  6.]])</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Vertical concatenation of empty list.&#39;</span><span class="p">)</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">cols</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Block operator vertical concatenation failed: &#39;</span>
+                         <span class="s">&#39;column mismatch.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LinearOperator</span><span class="p">((</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span>
+            <span class="n">__vertcat</span><span class="p">(</span><span class="n">blocks</span><span class="p">),</span>
+            <span class="n">__horzcat</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

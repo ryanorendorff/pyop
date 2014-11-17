@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simple Matrix Free Operators &mdash; PyOp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PyOp 0.1 documentation" href="#" />
+    <link rel="next" title="Linear Operator Tutorial" href="tutorial/linop.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial/linop.html" title="Linear Operator Tutorial"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">PyOp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simple-matrix-free-operators">
+<h1>Simple Matrix Free Operators<a class="headerlink" href="#simple-matrix-free-operators" title="Permalink to this headline">¶</a></h1>
+<p>PyOp is a framework for creating Linear Operators in a functional form.
+Operators specified in this format have a few benefits.</p>
+<ul class="simple">
+<li>The memory to store the operator can be much smaller. For example,
+an image reconstruction done by the authors used to require storing
+a <cite>sparse</cite> marix that was over 150 GB. With this matrix free version,
+the amount of space went down to kilobytes.</li>
+<li>The time to perform an operation can be greatly reduced. In the same
+image reconstruction problem, converting only one of the operations
+to a matrix free linear operator, while using a gradient descent
+algorithm, reduced the computation time by an order of magnitude.</li>
+<li>For some (although by no means all) morphisms it is simpler to
+describe the operation in a function based form than converting the
+operation into a matrix.</li>
+<li>The matrix free operators can be converted back into matrices easily
+should the need for certain numerical tools be required (factorizations),
+although many facilities are provided that work on matrix free inputs.</li>
+</ul>
+<p>This package makes it simple to create matrix free linear operators. Perhaps
+more importantly, it provides simple composition tools, allowing operators
+to be chained together with the same tools one would find in a matrix
+package (for example, adding operators or creating block operators).</p>
+<div class="section" id="tutorials">
+<h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h2>
+<p>Creating matrix free linear operators is straight forward, but a few
+conditions must be kept in mind in order to make the most of this package.
+The following tutorials walk through these conditions and an example of
+creating an operator.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/linop.html">Linear Operator Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/linop.html#unbound-functions">Unbound Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/linop.html#nested-functions-closures">Nested Functions/Closures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/rules.html">Operator Rules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/rules.html#the-rules">The Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/rules.html#tips">Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/rules.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="tools-for-creating-linear-operators">
+<h2>Tools for Creating Linear Operators<a class="headerlink" href="#tools-for-creating-linear-operators" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/tests.html">Tests</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="prefined-operators">
+<h2>Prefined Operators<a class="headerlink" href="#prefined-operators" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators/fft.html">FFT Operators</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/pyop_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Matrix Free Linear Operators</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/linop.html">Linear Operator Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/rules.html">Operator Rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/motivation.html">PyOp Motivation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/linop.html">Linear Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utilities.html">Convenient Decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/convert.html">Converting LinearOperators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/block.html">Blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/tests.html">Tests</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="operators/matrix_operators.html">Matrix Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators/convolution.html">Convolution Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators/fft.html">FFT Operators</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2014, Ryan Orendorff and Daniel Hensley.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.0</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>
