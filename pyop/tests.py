@@ -1,19 +1,21 @@
-from numpy.random import rand
-from numpy.testing import assert_approx_equal
-
+'''
+These are tests to assist with creating :class:`.LinearOperator`.
+'''
+import numpy as np
+from numpy.testing import assert_allclose
 
 def adjointTest(O, significant = 7):
     ''' Test for verifying forward and adjoint functions in LinearOperator.
 
     adjointTest verifies correctness for the forward and adjoint functions
-    for an operator via asserting < A^H * y, x > = < y, A * x >
+    for an operator via asserting :math:`<A^H y, x> = <y, A x>`
 
     Parameters
     ----------
-    O: LinearOperator
+    O : LinearOperator
         The LinearOperator to test.
 
-    significant: int, optional
+    significant : int, optional
         Perform the test with a numerical accuracy of "significant" digits.
 
     Examples
@@ -29,7 +31,7 @@ def adjointTest(O, significant = 7):
     AssertionError:
     '''
 
-    x = rand(O.shape[1])
-    y = rand(O.shape[0])
+    x = np.random.rand(O.shape[1])
+    y = np.random.rand(O.shape[0])
 
-    assert_approx_equal(O.T(y).dot(x), y.dot(O(x)), significant)
+    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = 10**significant)

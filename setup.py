@@ -1,8 +1,15 @@
 from setuptools import setup
 
+import sys
 from setuptools.command.test import test as TestCommand
 
 class PyTest(TestCommand):
+    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = None
+
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = []
@@ -11,12 +18,12 @@ class PyTest(TestCommand):
     def run_tests(self):
         #import here, cause outside the eggs aren't loaded
         import pytest
-        errno = pytest.main(self.test_args)
+        errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
 
 def readme():
-    with open('README.pandoc') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup( name             = 'pyop'
@@ -35,8 +42,12 @@ setup( name             = 'pyop'
         , 'Topic :: Scientific/Engineering :: Mathematics'
         , 'Topic :: Software Development :: Libraries :: Python Modules'
         ]
-     , packages         = ['pyop']
-     , install_requires = ['six >= 1.6', 'numpy >= 1.8']
+     , packages         = ['pyop', 'pyop.operators']
+     , install_requires =
+        [ 'six >= 1.6'
+        , 'numpy >= 1.8'
+        , 'scipy >= 0.14.0'
+        ]
      , zip_safe         = False
      , tests_require    = ['pytest']
      , cmdclass         = {'test': PyTest}
