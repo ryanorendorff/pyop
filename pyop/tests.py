@@ -34,4 +34,4 @@ def adjointTest(O, significant = 7):
     x = np.random.rand(O.shape[1])
     y = np.random.rand(O.shape[0])
 
-    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = 10**significant)
+    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = 10**(-significant))
