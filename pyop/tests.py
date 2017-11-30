@@ -4,7 +4,7 @@ These are tests to assist with creating :class:`.LinearOperator`.
 import numpy as np
 from numpy.testing import assert_allclose
 
-def adjointTest(O, significant = 7):
+def adjointTest(O, rtol=1e-7):
     ''' Test for verifying forward and adjoint functions in LinearOperator.
 
     adjointTest verifies correctness for the forward and adjoint functions
@@ -34,4 +34,4 @@ def adjointTest(O, significant = 7):
     x = np.random.rand(O.shape[1])
     y = np.random.rand(O.shape[0])
 
-    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = 10**(-significant))
+    assert_allclose(O.T(y).dot(x), y.dot(O(x)), rtol = rtol)
