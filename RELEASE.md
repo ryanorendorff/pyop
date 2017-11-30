@@ -1,3 +1,11 @@
+Version 0.1.1 (2017/11/30 01:39 UTC-07)
+=======================================
+
+Fix adjointTest to use a relative tolerance directly. Prior, it used
+a number of significant digits that the results should compare to, but
+this was implemented incorrectly.
+
+
 Version 0.1.0 (2014/11/17 09:12 UTC-08)
 =======================================
 
