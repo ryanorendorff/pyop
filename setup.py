@@ -27,12 +27,12 @@ def readme():
         return f.read()
 
 setup( name             = 'pyop'
-     , version          = '0.0.1'
+     , version          = '0.1.1'
      , description      = 'Matrix free linear transformations'
      , long_description = readme()
      , keywords         = [ 'Linear Algebra', 'Linear Transformations']
-     , author           = 'Daniel Hensley and Ryan Orendorff'
-     , author_email     = 'ryan@rdodesigns.com'
+     , author           = 'Ryan Orendorff and Daniel Hensley'
+     , author_email     = 'ryan@orendorff.io'
      , license          = 'BSD'
      , classifiers      =
         [ 'Development Status :: 1 - Planning'
@@ -48,7 +48,7 @@ setup( name             = 'pyop'
         , 'numpy >= 1.8'
         , 'scipy >= 0.14.0'
         ]
-     , zip_safe         = False
+     , zip_safe         = True
      , tests_require    = ['pytest']
      , cmdclass         = {'test': PyTest}
      )
